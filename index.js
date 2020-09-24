@@ -36,7 +36,9 @@ const getUserInfo = async (token, username) => {
 
         await Promise.all(repos.map(async(repo) => {
             try {
-                    
+                if(repo.name !== 'juicebox') {
+                    return;
+                }    
                 delete repo.owner;
                 
                 const COMMIT_URL = `https://api.github.com/repos/${username}/${repo.name}`;
@@ -60,15 +62,10 @@ const getUserInfo = async (token, username) => {
                     // Recursive function
                     await Promise.all(
                         commitMaster.parents.map(async (sha) => {
-                            if(sha.url.includes('juicebox')){
                                 await createCommitList(token, sha, commitList)
-                            } else {
-                                return
-                            }
                         })
                     )
                 }
-                console.log('commit list: ', commitList)
                 repo.commit_counts = await commitList;
                 // console.log("commit counts: ", commits.commit_counts);
                 // console.log('commits', commits)
@@ -100,11 +97,7 @@ const createCommitList = async (token, commitItem, arr) => {
             if(newCommit.parents && newCommit.parents.length > 0) {
                 await Promise.all(
                     newCommit.parents.map(async (sha) => {
-                        if(sha.url.includes('juicebox')){
-                            await createCommitList(token, sha, arr)
-                        } else {
-                            return
-                        }
+                        await createCommitList(token, sha, arr)
                     })
                 )
             } else {
@@ -146,9 +139,15 @@ server.get('/callback', async (req, res, next) => {
         const accessToken = response.data.access_token
         token = accessToken;
         console.log('token ', token);
-        const newUser = await getUserInfo(token, 'Jonmorgan12');
+        const jon = await getUserInfo(token, 'Jonmorgan12');
+        const cohort = await Promise.all(COHORT.map(async(student) => {
+            const info = {};
+            info.name = student;
+            info.repository = await getUserInfo(token, student);
+            return info
+        }))
         const limit = await getLimit(token);
-        res.send({limit, newUser})
+        res.send({limit, cohort, jon})
     })
 })
 
