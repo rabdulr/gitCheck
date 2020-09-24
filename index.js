@@ -1,6 +1,6 @@
 let token;
 require('dotenv').config();
-const COHORT = ['Jonmorgan12', 'tillyninjaspace']
+const COHORT = ['Jonmorgan12', 'tillyninjaspace', 'frankjoesilva', 'albert4770', , 'Ajrelerford', 'Zezlita']
 const PORT = 3000;
 const express = require('express');
 const server = express();
@@ -10,13 +10,6 @@ const clientId = process.env.CLIENT_ID;
 const clientSecret = process.env.CLIENT_SECRET;
 const bodyParser = require('body-parser');
 server.use(bodyParser.json());
-
-// server.use((req, res, next) => {
-//     console.log("<---- Body Logger START ---->");
-//     console.log(req.body);
-//     console.log("<---- Body Logger END ---->");
-//     next();
-// });
 
 
 const getLimit = async (token) => {
@@ -36,19 +29,24 @@ const getUserInfo = async (token, username) => {
 
         await Promise.all(repos.map(async(repo) => {
             try {
-                if(repo.name !== 'juicebox') {
-                    return;
-                }    
+                // map is not skipping/returning from the function 
+
+                // console.log('repo name: ', repo.name.toLowerCase());
+                // if(!repo.name.toLowerCase().includes('juicebox')) {
+                //     console.log('is juicebox?: ', repo.name.toLowerCase().includes('juicebox'));
+                //     return;
+                // }    
+
                 delete repo.owner;
                 
                 const COMMIT_URL = `https://api.github.com/repos/${username}/${repo.name}`;
                 
-                const {data:commits} = await axios(`${COMMIT_URL}`, headers);
+                // const {data:commits} = await axios(`${COMMIT_URL}`, headers);
                 // const commits = await commitResponse.json();
                 
-                delete commits.author;
-                delete commits.owner;
-                
+                // delete commits.author;
+                // delete commits.owner;
+                // console.log('commits: ', commits)
                 let commitList = [];
                 
                 const {data:commitMaster} = await axios(`${COMMIT_URL}/commits/master`, headers);
@@ -92,8 +90,7 @@ const createCommitList = async (token, commitItem, arr) => {
             // const newCommit = await newCommitResponse.json();
             delete newCommit.author;
             delete newCommit.owner;
-            arr.push(newCommit)
-            console.log('arr: ', arr)
+            arr.push(newCommit);
             if(newCommit.parents && newCommit.parents.length > 0) {
                 await Promise.all(
                     newCommit.parents.map(async (sha) => {
@@ -111,19 +108,17 @@ const createCommitList = async (token, commitItem, arr) => {
     }
 };
 
-// getUserInfo(user);
-
 server.use(express.static(__dirname));
 
-server.get('/gitCheck', async (req, res) => {
-    try {
-        const {data:newUser} = getUserInfo(user);
-        const limit = await getLimit();
-        res.send({limit, newUser})
-    } catch (error) {
-        throw error;
-    }
-})
+// server.get('/gitCheck', async (req, res) => {
+//     try {
+//         const {data:newUser} = getUserInfo(user);
+//         const limit = await getLimit();
+//         res.send({limit, newUser})
+//     } catch (error) {
+//         throw error;
+//     }
+// })
 
 
 server.get('/callback', async (req, res, next) => {
@@ -139,15 +134,15 @@ server.get('/callback', async (req, res, next) => {
         const accessToken = response.data.access_token
         token = accessToken;
         console.log('token ', token);
-        const jon = await getUserInfo(token, 'Jonmorgan12');
-        const cohort = await Promise.all(COHORT.map(async(student) => {
-            const info = {};
-            info.name = student;
-            info.repository = await getUserInfo(token, student);
-            return info
-        }))
+        const student = await getUserInfo(token, 'tillyninjaspace');
+        // const cohort = await Promise.all(COHORT.map(async(student) => {
+        //     const info = {};
+        //     info.name = student;
+        //     info.repository = await getUserInfo(token, student);
+        //     return info
+        // }))
         const limit = await getLimit(token);
-        res.send({limit, cohort, jon})
+        res.send({limit, student})
     })
 })
 
