@@ -5,8 +5,10 @@
   "main": "app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node index.js",
-    "start:dev": "nodemon index.js"
+    "build": "webpack",
+    "build:dev": "npm run build -- --watch --mode=development",
+    "start": "node server.js",
+    "start:dev": "nodemon server --ignore dist/ --ignore src/ & npm run build:dev"
   },
   "keywords": [],
   "author": "",
@@ -14,6 +16,16 @@
   "dependencies": {
     "axios": "^0.20.0",
     "dotenv": "^8.2.0",
-    "express": "^4.17.1"
+    "express": "^4.17.1",
+    "path": "^0.12.7",
+    "react": "^16.13.1",
+    "react-dom": "^16.13.1"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.11.6",
+    "@babel/preset-react": "^7.10.4",
+    "babel-loader": "^8.1.0",
+    "webpack": "^4.44.2",
+    "webpack-cli": "^3.3.12"
   }
 }

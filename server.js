@@ -1,5 +1,6 @@
 let token;
 require('dotenv').config();
+const path = require('path');
 const COHORT = ['Jonmorgan12', 'tillyninjaspace', 'frankjoesilva', 'albert4770', , 'Ajrelerford', 'Zezlita']
 const PORT = 3000;
 const express = require('express');
@@ -11,6 +12,10 @@ const clientSecret = process.env.CLIENT_SECRET;
 const bodyParser = require('body-parser');
 server.use(bodyParser.json());
 
+server.use('/dist', express.static(path.join(__dirname, 'dist')));
+server.use('/assets', express.static(path.join(__dirname, 'assets')));
+
+server.get('/', (req, res, next) => res.sendFile(path.join(__dirname, 'index.html')));
 
 const getLimit = async (token) => {
     const headers = {headers: { 'Authorization': `token ${token}`}};
@@ -107,8 +112,6 @@ const createCommitList = async (token, commitItem, arr) => {
         throw error;
     }
 };
-
-server.use(express.static(__dirname));
 
 // server.get('/gitCheck', async (req, res) => {
 //     try {

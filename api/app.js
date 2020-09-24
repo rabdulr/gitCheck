@@ -1,3 +1,5 @@
+// Deprecated version of backend
+
 console.log('Hello!');
 
 const user = 'bboysamuel';
