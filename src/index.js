@@ -33,8 +33,12 @@ const App = () => {
     }
 
     const getUser = async () => {
-        const {data} = await axios.get('/api/github/getUser', {params: {token}})
-        console.log(data)
+        try {
+            const {data} = await axios.get('/api/github/getUser', {params: {token}})
+            console.log(data)
+        } catch (error) {
+            
+        }
     }
 
     return(
@@ -53,6 +57,7 @@ const App = () => {
                         
                     </div>
             }
+            <h3>Data</h3>
         </div>
     )
 }

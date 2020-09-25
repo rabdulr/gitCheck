@@ -1,24 +1,30 @@
 const router = require('express').Router();
-const COHORT = ['Jonmorgan12', 'tillyninjaspace', 'frankjoesilva', 'albert4770', , 'Ajrelerford', 'Zezlita'];
-const clientId = process.env.CLIENT_ID;
-const clientSecret = process.env.CLIENT_SECRET;
+const {STUDENT_LIST, CLIENT_ID, CLIENT_SECRET} = process.env;
+const cohort = JSON.parse(STUDENT_LIST)
 const axios = require('axios');
 
 // Functions
+
+const headers = (token) => {
+    const header = {
+        headers: {
+            'Authorization' : `token ${token}`
+        }
+    };
+    return header;
+};
+
 const getLimit = async (token) => {
-    const headers = {headers: { 'Authorization': `token ${token}`}};
-    const { data:limit } = await axios('https://api.github.com/rate_limit', headers);
-    // const limit = await limitResponse.json();
+    const { data:limit } = await axios('https://api.github.com/rate_limit', headers(token));
     return limit;
-}
+};
 
 const getUserInfo = async (token, username) => {
-    const headers = {headers: { 'Authorization': `token ${token}`}};
     try {
         const URL = `https://api.github.com/users/${username}`;
     
         const {data:user} = await axios(`${URL}`, headers);
-        const {data:repos} = await axios(`${URL}/repos`, headers);
+        const {data:repos} = await axios(`${URL}/repos`, headers(token));
 
         await Promise.all(repos.map(async(repo) => {
             try {
@@ -34,15 +40,9 @@ const getUserInfo = async (token, username) => {
                 
                 const COMMIT_URL = `https://api.github.com/repos/${username}/${repo.name}`;
                 
-                // const {data:commits} = await axios(`${COMMIT_URL}`, headers);
-                // const commits = await commitResponse.json();
-                
-                // delete commits.author;
-                // delete commits.owner;
-                // console.log('commits: ', commits)
                 let commitList = [];
                 
-                const {data:commitMaster} = await axios(`${COMMIT_URL}/commits/master`, headers);
+                const {data:commitMaster} = await axios(`${COMMIT_URL}/commits/master`, headers(token));
                 // const commitMaster = await commitMasterResponse.json();
                 delete commitMaster.author;
                 delete commitMaster.owner;
@@ -76,10 +76,9 @@ const getUserInfo = async (token, username) => {
 };
 
 const createCommitList = async (token, commitItem, arr) => {
-    const headers = {headers: { 'Authorization': `token ${token}`}};
     try {
         if(commitItem.url) {
-            const {data:newCommit} = await axios(`${commitItem.url}`, headers);
+            const {data:newCommit} = await axios(`${commitItem.url}`, headers(token));
             // const newCommit = await newCommitResponse.json();
             delete newCommit.author;
             delete newCommit.owner;
@@ -90,8 +89,6 @@ const createCommitList = async (token, commitItem, arr) => {
                         await createCommitList(token, sha, arr)
                     })
                 )
-            } else {
-                return
             }
         } else {
             return;
@@ -107,40 +104,23 @@ router.get('/callback', async (req, res, next) => {
         const requestToken = req.query.code
         const {data:{access_token}} = await axios({
             method: 'post',
-            url: `https://github.com/login/oauth/access_token?client_id=${clientId}&client_secret=${clientSecret}&code=${requestToken}`,
+            url: `https://github.com/login/oauth/access_token?client_id=${CLIENT_ID}&client_secret=${CLIENT_SECRET}&code=${requestToken}`,
             headers: {
                 accept: 'application/json'
             }
         });
         res.redirect(`/?access_token=${access_token}`)
-                // .then(async (response)=>{
-                //     const accessToken = response.data.access_token
-                //     token = accessToken;
-                //     console.log('token ', token);
-                //     const student = await getUserInfo(token, 'tillyninjaspace');
-                //     // const cohort = await Promise.all(COHORT.map(async(student) => {
-                //     //     const info = {};
-                //     //     info.name = student;
-                //     //     info.repository = await getUserInfo(token, student);
-                //     //     return info
-                //     // }))
-                //     const limit = await getLimit(token);
-                //     res.send({limit, student})
-                // })
     } catch (error) {
         throw error;
     }
 })
-
-// router.get('/', (req, res) => {
-//     res.redirect('https://github.com/login/oauth/authorize?client_id=2d9066f1cc065f4ad732&redirect_uri=http://localhost:3000/callback');
-// });
 
 router.get('/getUser', async (req, res) => {
     console.log('req user: ', req.query);
     const {token} = req.query;
     const limit = await getLimit(token);
     const student = await getUserInfo(token, 'tillyninjaspace');
+    // Function below with mapping
     // const cohort = await Promise.all(COHORT.map(async(student) => {
     //     const info = {};
     //     info.name = student;
