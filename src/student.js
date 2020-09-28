@@ -1,8 +1,9 @@
 import React from 'react';
+import Repo from './Repo'
 
 const Student = ({student}) => {
     const {repo} = student;
-
+    
     return(
         <div>
             <h1>Student Card</h1>
@@ -15,14 +16,7 @@ const Student = ({student}) => {
                     repo.map((project, idx) => {
                         return (
                             <div key={idx}>
-                                <li><h3>Project Name: {project.name}</h3></li>
-                                <ul>
-                                    <li>Project URL: {project.url}</li>
-                                    <li>Project Creation Date: {project.created_at}</li>
-                                    <li>Project Updated Date: {project.updated_at}</li>
-                                    <li>Project Pushed Date: {project.pushed_at}</li>
-                                    <li>Project Commit Counts: {project.commit_counts.length}</li>
-                                </ul>
+                                <Repo project={project} idx={idx} />
                             </div>
                         )
                     })
@@ -30,6 +24,6 @@ const Student = ({student}) => {
             </ul>
         </div>
     )
-}
+};
 
 export default Student;

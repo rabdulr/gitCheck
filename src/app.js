@@ -2,7 +2,7 @@ import React, {useState, useEffect} from 'react';
 import axios from 'axios';
 import ReactJson from 'react-json-view';
 
-import Student from './student'
+import Students from './Student'
 
 
 const App = () => {
@@ -84,7 +84,7 @@ const App = () => {
                     </div>
             }
             <h3>Data</h3>
-            <Student student={student} />
+            <Students student={student} />
             <ReactJson src={student} />
         </div>
     )
