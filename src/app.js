@@ -1,6 +1,9 @@
 import React, {useState, useEffect} from 'react';
 import axios from 'axios';
 import ReactJson from 'react-json-view';
+import {XYPlot, VerticalGridLines, HorizontalGridLines, YAxis, XAxis, ChartLabel, LineSeries} from 'react-vis';
+import RVStyles from 'react-vis-styles';
+import {basicLineData} from './Functions'
 
 import Students from './Student'
 
@@ -9,6 +12,7 @@ const App = () => {
     const [token, setToken] = useState(window.localStorage.getItem('token'));
     const [userLogin, setUserLogin] = useState(false)
     const [student, setStudent] = useState(JSON.parse(window.localStorage.getItem('student')));
+    const [data, setData] = useState([]);
 
     // useEffect(() => {
     //     const user = localStorage.getItem('student')
@@ -84,8 +88,35 @@ const App = () => {
                     </div>
             }
             <h3>Data</h3>
-            <Students student={student} />
-            <ReactJson src={student} />
+            <button onClick={() => basicLineData(student.repo[0], setData)}>Give Me Data</button>
+            {
+                data ?
+                // <div>
+                //     <RVStyles />
+                //     <XYPlot height={500} width={500}>
+                //         <VerticalGridLines />
+                //         <HorizontalGridLines />
+                //         <XAxis title='Date'/>
+                //         <YAxis title='Commits'/>
+                //         <ChartLabel text='Commits' />
+                //         <LineSeries
+                //             style={{strokeWidth: '3px'}} 
+                //             data={data} />
+                //     </XYPlot> 
+                // </div>
+                ''
+                : ''
+            }
+            {
+                student ? 
+                
+                <div>
+                    <Students student={student} />
+                    <ReactJson src={student} />
+                </div>
+                
+                : <h3>No Info</h3>
+            }
         </div>
     )
 }
