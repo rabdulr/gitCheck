@@ -1,7 +1,10 @@
 const router = require('express').Router();
 const {STUDENT_LIST, CLIENT_ID, CLIENT_SECRET} = process.env;
-const cohort = JSON.parse(STUDENT_LIST)
+const COHORT = JSON.parse(STUDENT_LIST)
 const axios = require('axios');
+
+// Cohort information is currently hard coded
+// Will need to create a way to get from an array on Front End
 
 // Functions
 
@@ -116,18 +119,26 @@ router.get('/callback', async (req, res, next) => {
 })
 
 router.get('/getUser', async (req, res) => {
-    console.log('req user: ', req.query);
     const {token} = req.query;
-    const limit = await getLimit(token);
-    const student = await getUserInfo(token, 'tillyninjaspace');
+    // Call limit later as own function
+    // const limit = await getLimit(token);
+    const student = {}
+    // Have name be whater the body is for future
+    student.name = 'tillyninjaspace';
+    student.repository = await getUserInfo(token, 'tillyninjaspace'); 
+    res.send({student})
+});
+
+router.get('/getUsers', async (req, res) => {
+    const{token} = req.query;
     // Function below with mapping
-    // const cohort = await Promise.all(COHORT.map(async(student) => {
-    //     const info = {};
-    //     info.name = student;
-    //     info.repository = await getUserInfo(token, student);
-    //     return info
-    // }))
-    res.send({limit, student})
+    const cohort = await Promise.all(COHORT.map(async(student) => {
+        const info = {};
+        info.name = student;
+        info.repository = await getUserInfo(token, student);
+        return info
+    }));
+    res.send({cohort})
 })
 
 module.exports = {

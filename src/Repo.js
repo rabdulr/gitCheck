@@ -1,11 +1,59 @@
-import React from 'react';
-import Project from './Project'
+import React, {useState, useEffect} from 'react';
+import Project from './Project';
+import { LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip, Legend} from 'recharts';
+import {basicCommitLineData, findData, combineData} from '../functions';
 
-const Repos = ({project, idx}) => {
+const Repos = ({project, idx, avgData}) => {
+    const [data, setData] = useState(basicCommitLineData(project));
+    const [classData, setClassData] = useState(findData(avgData, project.name));
+    const [combinedData, setCombinedData] = useState([])
     const {commit_counts} = project;
+    
+    useEffect(() => {
+        if(project && data.length === 0) {
+            setData(basicCommitLineData(project));
+        }
+    }, [project]);
+
+    // const findData = (dataList) => {
+    //     const matchProj = dataList.filter(data => project.name.includes(data.project));
+    //     if(!matchProj) return null;
+    //     const {avgData} = matchProj;
+    //     return avgData
+    // }
+
+    useEffect(() => {
+        if(project && avgData && !classData) {
+            setClassData(findData(avgData, project.name))
+        }
+    }, [avgData]);
+    
+    useEffect(() => {
+        if(data && classData){
+            setCombinedData(combineData(data, classData));
+        }
+    },[classData, data])
+
+    console.log('combined data: ', combinedData)
+
     return (
         <div key={idx}>
             <li><h3>Project Name: {project.name}</h3></li>
+            {
+                data.length > 0 ? 
+                <div>
+                    <LineChart width={600} height={300} data={combinedData} margin={{top: 5, right: 20, bottom: 5, left: 0}}>
+                        <CartesianGrid stroke="#ccc" strokeDasharray="5 5" />
+                        <XAxis dataKey="day" />
+                        <YAxis domain={[0, 'dataMax']}/>
+                        <Legend verticalAlign="top" height={10} />
+                        <Line type="monotone" dataKey="commits" stroke="#8884d8"/>
+                        <Line type="monotone" dataKey="avgCommits" stroke="#82ca9d"/>
+                        <Tooltip />
+                    </LineChart>
+                </div>
+                : <h3>No Data to Graph</h3>
+            }
             <ul key={project.id}>
                 <li>Project URL: {project.url}</li>
                 <li>Project Creation Date: {project.created_at}</li>

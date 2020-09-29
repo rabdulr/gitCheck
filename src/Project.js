@@ -1,9 +1,11 @@
 import React from 'react';
-import File from './File'
+import File from './File';
+
 
 const Project = ({commit}) => {
-    const {stats} = commit;
-    const {files} = commit;
+
+    const {stats, files} = commit;
+
     return (
         <div>
             <li>Commit Message: {commit.commit.message}</li>

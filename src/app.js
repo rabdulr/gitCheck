@@ -1,8 +1,7 @@
 import React, {useState, useEffect} from 'react';
 import axios from 'axios';
 import ReactJson from 'react-json-view';
-import { LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip} from 'recharts';
-import {basicCommitLineData} from './Functions';
+import {projectAvg} from '../functions';
 
 
 import Students from './Student'
@@ -12,16 +11,8 @@ const App = () => {
     const [token, setToken] = useState(window.localStorage.getItem('token'));
     const [userLogin, setUserLogin] = useState(false)
     const [student, setStudent] = useState(JSON.parse(window.localStorage.getItem('student')));
-    const [data, setData] = useState([]);
-
-    // useEffect(() => {
-    //     const user = localStorage.getItem('student')
-    //     if(!student && user) {
-    //         setStudent(JSON.parse(user));
-    //         console.log('useEffect: ', user)
-    //     }
-    // }, [])
-
+    const [cohort, setCohort] = useState(JSON.parse(window.localStorage.getItem('cohort')));
+    const [ avgData, setAvgData ] = useState([]);
 
     useEffect(() =>{
         // attempting to clear accesss_token from URL
@@ -45,6 +36,13 @@ const App = () => {
             setUserLogin(true);
         }  
     }, [])
+
+    useEffect(() => {
+        if (cohort.length > 0) {
+            const testAvg = projectAvg(cohort, 'juicebox');
+            setAvgData([...avgData, testAvg])
+        }
+    }, [cohort])
     
     const gitHubLogin = () => {
         window.location.replace('https://github.com/login/oauth/authorize?client_id=2d9066f1cc065f4ad732&redirect_uri=http://localhost:3000/api/github/callback')
@@ -58,11 +56,11 @@ const App = () => {
     }
 
     const getStudent = async () => {
-        const user = localStorage.getItem('student')
+        const user = localStorage.getItem('student');
         try {
             if(user) {
                 setStudent(JSON.parse(user));
-                console.log('Pulling from storage!')
+                console.log('Pulling from storage!');
             } else {
                 const {data:{limit, student}} = await axios.get('/api/github/getUser', {params: {token}})
                 setStudent(student);
@@ -73,6 +71,23 @@ const App = () => {
         }
     }
 
+    const getStudents = async () => {
+        const users = localStorage.getItem('cohort');
+        try {
+            if (users) {
+                setCohort(JSON.parse(users));
+                console.log('Pulling from storage!');
+            } else {
+                const {data:{limit, cohort}} = await axios.get('/api/github/getUsers', {params: {token}})
+                setCohort(cohort);
+                localStorage.setItem('cohort', JSON.stringify(cohort));
+            }
+        } catch (error) {
+            throw error;
+        }
+    }
+
+
     return(
         <div>
             <h1>GitCheck FSA</h1>
@@ -82,36 +97,36 @@ const App = () => {
                     <div>
                         <button onClick={logOut}>Log Out</button>
                         <button onClick={getStudent}>Get User</button>
+                        <button onClick={getStudents}>Get Students</button>
                     </div> : 
                     <div>
                         <button onClick={gitHubLogin}>GitHub Login</button>
                     </div>
             }
             <h3>Data</h3>
-            <button onClick={() => basicCommitLineData(student.repo[0], setData)}>Give Me Data</button>
-            {
-                data ?
-                <div>
-                    <LineChart width={600} height={300} data={data} margin={{top: 5, right: 20, bottom: 5, left: 0}}>
-                        <Line type="monotone" dataKey="commits" />
-                        <CartesianGrid stroke="#ccc" strokeDasharray="5 5" />
-                        <XAxis dataKey="day" />
-                        <YAxis ticks={[1, 2, 3, 4, 5]} domain={[0, 'dataMax']}/>
-                        <Tooltip />
-                    </LineChart>
-                </div>
-                
-                : ''
-            }
-            {
+            {/* {
                 student ? 
                 
                 <div>
                     <Students student={student} />
-                    {/* <ReactJson src={student} /> */}
                 </div>
                 
-                : <h3>No Info</h3>
+                : <h3>No Single Student Info</h3>
+            } */}
+            {
+                cohort ?
+
+                <div>
+                {
+                    cohort.map(student => {
+                        return(
+                            <Students student={student} avgData={avgData}/>
+                        )
+                    })
+                }
+                </div>
+
+                : <h3>No Cohort information</h3>
             }
         </div>
     )
