@@ -64,7 +64,7 @@ const projectAvg = (cohort, project) => {
     cohort.map(student => {
         const {repository:{repo}} = student
         repo.map(repoInfo => {
-            if(repoInfo.name.includes(project)) repos.push(repoInfo);
+            if(repoInfo.name.toLowerCase().includes(project)) repos.push(repoInfo);
         })
     })
     
@@ -103,7 +103,7 @@ const calcRepoData = (repoData) => {
 
 // Match data with repo
 const findData = (dataList, projectName) => {
-    const matchProj = dataList.filter(data => projectName.includes(data.project));
+    const matchProj = dataList.filter(data => projectName.toLowerCase().includes(data.project));
     if(!matchProj.length) return null;
     const {avgData} = matchProj[0];
     return avgData
@@ -112,6 +112,8 @@ const findData = (dataList, projectName) => {
 // Combine data types
 const combineData = (userData, avgData) => {
     
+    if(!userData || !avgData) return;
+
     const dictionary = {};
 
     userData.map(user => {

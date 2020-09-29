@@ -132,6 +132,7 @@ router.get('/getUser', async (req, res) => {
 router.get('/getUsers', async (req, res) => {
     const{token} = req.query;
     // Function below with mapping
+    console.log(COHORT)
     const cohort = await Promise.all(COHORT.map(async(student) => {
         const info = {};
         info.name = student;

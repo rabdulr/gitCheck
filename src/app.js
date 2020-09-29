@@ -1,6 +1,7 @@
 import React, {useState, useEffect} from 'react';
 import axios from 'axios';
 import ReactJson from 'react-json-view';
+import { LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip, Legend} from 'recharts';
 import {projectAvg} from '../functions';
 
 
@@ -12,7 +13,7 @@ const App = () => {
     const [userLogin, setUserLogin] = useState(false)
     const [student, setStudent] = useState(JSON.parse(window.localStorage.getItem('student')));
     const [cohort, setCohort] = useState(JSON.parse(window.localStorage.getItem('cohort')));
-    const [ avgData, setAvgData ] = useState([]);
+    const [avgData, setAvgData] = useState([]);
 
     useEffect(() =>{
         // attempting to clear accesss_token from URL
@@ -38,9 +39,10 @@ const App = () => {
     }, [])
 
     useEffect(() => {
-        if (cohort.length > 0) {
-            const testAvg = projectAvg(cohort, 'juicebox');
-            setAvgData([...avgData, testAvg])
+        if (token && cohort ) {
+            const juiceBoxAvg = projectAvg(cohort, 'juicebox');
+            const phenomenaAvg = projectAvg(cohort, 'phenomena')
+            setAvgData([...avgData, juiceBoxAvg, phenomenaAvg])
         }
     }, [cohort])
     
@@ -87,7 +89,7 @@ const App = () => {
         }
     }
 
-
+console.log('avg: ', avgData)
     return(
         <div>
             <h1>GitCheck FSA</h1>
@@ -104,15 +106,20 @@ const App = () => {
                     </div>
             }
             <h3>Data</h3>
-            {/* {
-                student ? 
-                
+            {
+                avgData.length > 0 ? 
                 <div>
-                    <Students student={student} />
+                    <LineChart width={600} height={300} data={avgData[0].avgData} margin={{top: 5, right: 20, bottom: 5, left: 0}}>
+                        <CartesianGrid stroke="#ccc" strokeDasharray="5 5" />
+                        <XAxis dataKey="day" />
+                        <YAxis domain={[0, 'dataMax + 1']}/>
+                        <Legend verticalAlign="top" height={10} />
+                        <Line type="monotone" dataKey="avgCommits" stroke="#82ca9d"/>
+                        <Tooltip />
+                    </LineChart>
                 </div>
-                
-                : <h3>No Single Student Info</h3>
-            } */}
+                : <h3>No Data</h3>
+            }
             {
                 cohort ?
 

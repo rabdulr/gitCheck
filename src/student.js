@@ -8,9 +8,9 @@ const Student = ({student, avgData}) => {
     return(
         <div>
             <h3>Student: {repository.name}</h3>
-            <h3>Username: {repository.login}</h3>
-            <h3>Last Repo Update: {repository.updated_at}</h3>
-            <h3>Number of public repos: {repository.public_repos}</h3>
+            <h4>Username: {repository.login}</h4>
+            <h4>Last Repo Update: {repository.updated_at}</h4>
+            <h4>Number of public repos: {repository.public_repos}</h4>
             <ul>
                 {
                     repo.map((project, idx) => {
