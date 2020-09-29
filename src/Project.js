@@ -21,8 +21,9 @@ const Project = ({commit}) => {
                     <ul>
                         {
                             files.length > 0 ? files.map((file, idx) => {
+                                // Need an actual key at some point
                                 return (
-                                    <div>
+                                    <div key={Math.random() * idx}>
                                         <File file={file} />
                                     </div>
                                 )

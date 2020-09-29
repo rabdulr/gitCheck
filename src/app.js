@@ -124,10 +124,13 @@ console.log('avg: ', avgData)
                 cohort ?
 
                 <div>
-                {
+                {   
                     cohort.map(student => {
+                        console.log(student);
                         return(
-                            <Students student={student} avgData={avgData}/>
+                            <div key={student.name}>
+                                <Students student={student} avgData={avgData}/>
+                            </div>
                         )
                     })
                 }
