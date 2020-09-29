@@ -1,9 +1,9 @@
 import React, {useState, useEffect} from 'react';
 import axios from 'axios';
 import ReactJson from 'react-json-view';
-import {XYPlot, VerticalGridLines, HorizontalGridLines, YAxis, XAxis, ChartLabel, LineSeries} from 'react-vis';
-import RVStyles from 'react-vis-styles';
-import {basicLineData} from './Functions'
+import { LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip} from 'recharts';
+import {basicCommitLineData} from './Functions';
+
 
 import Students from './Student'
 
@@ -88,23 +88,19 @@ const App = () => {
                     </div>
             }
             <h3>Data</h3>
-            <button onClick={() => basicLineData(student.repo[0], setData)}>Give Me Data</button>
+            <button onClick={() => basicCommitLineData(student.repo[0], setData)}>Give Me Data</button>
             {
                 data ?
-                // <div>
-                //     <RVStyles />
-                //     <XYPlot height={500} width={500}>
-                //         <VerticalGridLines />
-                //         <HorizontalGridLines />
-                //         <XAxis title='Date'/>
-                //         <YAxis title='Commits'/>
-                //         <ChartLabel text='Commits' />
-                //         <LineSeries
-                //             style={{strokeWidth: '3px'}} 
-                //             data={data} />
-                //     </XYPlot> 
-                // </div>
-                ''
+                <div>
+                    <LineChart width={600} height={300} data={data} margin={{top: 5, right: 20, bottom: 5, left: 0}}>
+                        <Line type="monotone" dataKey="commits" />
+                        <CartesianGrid stroke="#ccc" strokeDasharray="5 5" />
+                        <XAxis dataKey="day" />
+                        <YAxis ticks={[1, 2, 3, 4, 5]} domain={[0, 'dataMax']}/>
+                        <Tooltip />
+                    </LineChart>
+                </div>
+                
                 : ''
             }
             {
@@ -112,7 +108,7 @@ const App = () => {
                 
                 <div>
                     <Students student={student} />
-                    <ReactJson src={student} />
+                    {/* <ReactJson src={student} /> */}
                 </div>
                 
                 : <h3>No Info</h3>
