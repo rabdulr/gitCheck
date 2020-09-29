@@ -15,13 +15,6 @@ const Repos = ({project, idx, avgData}) => {
         }
     }, [project]);
 
-    // const findData = (dataList) => {
-    //     const matchProj = dataList.filter(data => project.name.includes(data.project));
-    //     if(!matchProj) return null;
-    //     const {avgData} = matchProj;
-    //     return avgData
-    // }
-
     useEffect(() => {
         if(project && avgData && !classData) {
             setClassData(findData(avgData, project.name))
@@ -33,8 +26,6 @@ const Repos = ({project, idx, avgData}) => {
             setCombinedData(combineData(data, classData));
         }
     },[classData, data])
-
-    console.log('combined data: ', combinedData)
 
     return (
         <div key={idx}>
