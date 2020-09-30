@@ -41,7 +41,7 @@ const getUserInfo = async (token, username) => {
             console.log(`STARTING REPO ${repo.name} for ${username}`)
             const response = await axios(`${repo.url}/commits/master`, headers(token)).catch(err => err.response.status);
             if(response === 409) {
-                repo.commit_counts = commitList
+                repo.commit_counts = commitList;
                 return repo;
             };
             const {data:commitMaster} = response;
@@ -86,7 +86,7 @@ const createCommitList = async (token, commitItem, arr) => {
             if(newCommit.parents && newCommit.parents.length > 0) {
                 await Promise.all(
                     newCommit.parents.map(async (sha) => {
-                        await createCommitList(token, sha, arr);
+                        await timedPromise(50, createCommitList(token, sha, arr));
                     })
                 )
             }
@@ -148,15 +148,33 @@ router.get('/getUsers', async (req, res) => {
     // Function below with mapping
     try {
         console.log(COHORT)
-        const cohort = await Promise.all(COHORT.map(async(student) => {
-            return await startGetUser(token, student);
-        }))
-        .catch(err => console.log(err));
+        const chunkList = chunkStudentList(COHORT, 2);
+        const chunkedData = await Promise.all(chunkList.map(async (set) => {
+            return await Promise.all(set.map(async(student) => {
+                    return await startGetUser(token, student);
+                }))
+                .catch(err => console.log(err));
+        }));
+        const cohort = chunkedData.flat();
+        // const cohort = await Promise.all(COHORT.map(async(student) => {
+        //     return await startGetUser(token, student);
+        // }))
+        // .catch(err => console.log(err));
+        console.log({cohort})
         res.send({cohort})
     } catch (error) {
         throw error;
     }
-})
+});
+
+const chunkStudentList = (list, size) => {
+    const result = [];
+    for (let i = 0; i < list.length; i += size) {
+        let chunk = list.slice(i, i + size)
+        result.push(chunk)
+    }
+    return result;
+}
 
 const startGetUser = async (token, student) => {
     console.log(`STARTING PROCESS: ${student}`)

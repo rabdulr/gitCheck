@@ -85,7 +85,7 @@ const App = () => {
                 console.log('FE COHORT: ', cohort)
                 if(!cohort) return;
                 setCohort(cohort);
-                localStorage.setItem('cohort', JSON.stringify(cohort));
+                // localStorage.setItem('cohort', JSON.stringify(cohort));
             }
         } catch (error) {
             throw error;
@@ -139,7 +139,8 @@ const App = () => {
 
                 <div>
                 {   
-                    cohort.map(student => {
+                    cohort.forEach(student => {
+                        if (!student.name) return;
                         return(
                             <div key={student.name}>
                                 <Students student={student} avgData={avgData}/>
