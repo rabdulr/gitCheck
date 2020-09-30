@@ -25,7 +25,7 @@ const Student = ({student, avgData}) => {
                                 {
                                     repo.map((project, idx) => {
                                         return (
-                                            <div key={idx}>
+                                            <div key={Math.random() + idx}>
                                                 <Repo project={project} idx={idx} avgData={avgData}/>
                                             </div>
                                         )

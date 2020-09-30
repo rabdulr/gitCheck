@@ -82,6 +82,7 @@ const App = () => {
                 console.log('Pulling from storage!');
             } else {
                 const {data:{limit, cohort}} = await axios.get('/api/github/getUsers', {params: {token}})
+                console.log('FE COHORT: ', cohort)
                 if(!cohort) return;
                 setCohort(cohort);
                 localStorage.setItem('cohort', JSON.stringify(cohort));

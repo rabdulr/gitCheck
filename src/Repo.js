@@ -60,7 +60,7 @@ const Repos = ({project, idx, avgData}) => {
                         <Collapse in={open}>
                             <h3>Hello Data!</h3>
                         </Collapse>
-                    {
+                    {/* {
                         commit_counts.length > 0 ? 
                         commit_counts.map((commit, idx) => {
                             return ( 
@@ -68,7 +68,7 @@ const Repos = ({project, idx, avgData}) => {
                                     <Project commit={commit} />
                                 </div>)
                             }) : <h3>No Data</h3>
-                        }
+                    } */}
             </ul>
         </div>
     )

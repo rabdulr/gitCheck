@@ -25,53 +25,48 @@ const getLimit = async (token) => {
 
 const getUserInfo = async (token, username) => {
     try {
+        console.log(`GETTING info for ${username}`)
         const URL = `https://api.github.com/users/${username}`;
-    
+        
         const {data:user} = await axios(`${URL}`, headers);
         const {data:repos} = await axios(`${URL}/repos`, headers(token));
-
-        await Promise.all(repos.map(async(repo) => {
-            try {
-                // map is not skipping/returning from the function 
-
-                // console.log('repo name: ', repo.name.toLowerCase());
-                // if(!repo.name.toLowerCase().includes('juicebox')) {
-                //     console.log('is juicebox?: ', repo.name.toLowerCase().includes('juicebox'));
-                //     return;
-                // }    
-
-                delete repo.owner;
-                
-                const COMMIT_URL = `https://api.github.com/repos/${username}/${repo.name}`;
-                
-                let commitList = [];
-                
-                const {data:commitMaster} = await axios(`${COMMIT_URL}/commits/master`, headers(token));
-                // const commitMaster = await commitMasterResponse.json();
-                delete commitMaster.author;
-                delete commitMaster.owner;
-                
-                // commitList.push(commitMaster.parents);
-                
-                if(commitMaster.parents.length > 0) {
-                    // Recursive function
-                    await Promise.all(
-                        commitMaster.parents.map(async (sha) => {
-                                await createCommitList(token, sha, commitList)
-                        })
-                    )
-                }
-                repo.commit_counts = await commitList;
-                // console.log("commit counts: ", commits.commit_counts);
-                // console.log('commits', commits)
-                // repo.commitInfo = commits;
+        await Promise.all(repos.map(async (repo) => {
+            // acc = [];
+            
+            delete repo.owner;
+            
+            // const COMMIT_URL = `https://api.github.com/repos/${username}/${repo.name}`;
+            
+            const commitList = [];
+            console.log(`STARTING REPO ${repo.name} for ${username}`)
+            const response = await axios(`${repo.url}/commits/master`, headers(token)).catch(err => err.response.status);
+            if(response === 409) {
+                repo.commit_counts = commitList
                 return repo;
-                } catch (error) {
-                throw error;
-                }
-            }))
-        user.repo = repos
+            };
+            const {data:commitMaster} = response;
+            // const commitMaster = await commitMasterResponse.json();
+            delete commitMaster.author;
+            delete commitMaster.owner;
+            
+            // commitList.push(commitMaster.parents);
+            
+            if(commitMaster.parents.length > 0) {
+                // Recursive function
+                await Promise.all(
+                    commitMaster.parents.map(async (sha) => {
+                            await createCommitList(token, sha, commitList)
+                    })
+                )
+            }
+            repo.commit_counts = await commitList;
+            // acc.push(repo);
+            console.log(`ENDING REPO ${repo.name} for ${username}`)
+            return repo
+        }));
+        user.repo = repos;
         // info[username].repo = repos;
+        console.log(`FINISHED getting info for ${username}`)
         return user;
     } catch (error) {
         throw error;
@@ -86,11 +81,12 @@ const createCommitList = async (token, commitItem, arr) => {
             // const newCommit = await newCommitResponse.json();
             delete newCommit.author;
             delete newCommit.owner;
+            // potentially loop through to delete patch files as they can be large
             arr.push(newCommit);
             if(newCommit.parents && newCommit.parents.length > 0) {
                 await Promise.all(
                     newCommit.parents.map(async (sha) => {
-                        await createCommitList(token, sha, arr)
+                        await createCommitList(token, sha, arr);
                     })
                 )
             }
@@ -140,23 +136,36 @@ router.get('/getUser', async (req, res) => {
     res.send({student})
 });
 
+const timedPromise = (time, payload) => {
+    return new Promise(resolve => {
+        setTimeout(() => {
+            resolve(payload)
+        }, time)
+    })
+}
 router.get('/getUsers', async (req, res) => {
     const{token} = req.query;
     // Function below with mapping
     try {
         console.log(COHORT)
         const cohort = await Promise.all(COHORT.map(async(student) => {
-            const info = {};
-            info.name = student;
-            info.repository = await getUserInfo(token, student);
-            return info
+            return await startGetUser(token, student);
         }))
-            .catch(err => console.log(err));
+        .catch(err => console.log(err));
         res.send({cohort})
     } catch (error) {
         throw error;
     }
 })
+
+const startGetUser = async (token, student) => {
+    console.log(`STARTING PROCESS: ${student}`)
+    const info = {};
+    info.name = student;
+    info.repository = await timedPromise(50, getUserInfo(token, student));
+    console.log(`ENDING PROCESS: ${student}`)
+    return info
+};
 
 module.exports = {
     router
