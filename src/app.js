@@ -5,7 +5,7 @@ import { LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip, Legend} from 're
 import {projectAvg} from '../functions';
 
 
-import Students from './Student'
+import Student from './Student'
 
 
 const App = () => {
@@ -85,7 +85,7 @@ const App = () => {
                 console.log('FE COHORT: ', cohort)
                 if(!cohort) return;
                 setCohort(cohort);
-                // localStorage.setItem('cohort', JSON.stringify(cohort));
+                localStorage.setItem('cohort', JSON.stringify(cohort));
             }
         } catch (error) {
             throw error;
@@ -136,21 +136,18 @@ const App = () => {
             }
             {
                 cohort ?
-
-                <div>
-                {   
-                    cohort.forEach(student => {
-                        if (!student.name) return;
-                        return(
-                            <div key={student.name}>
-                                <Students student={student} avgData={avgData}/>
-                            </div>
-                        )
-                    })
-                }
-                </div>
-
-                : <h3>No Cohort information</h3>
+                    <div>
+                        {   
+                            cohort.map(student => {
+                                return(
+                                    <div key={student.name}>
+                                        <Student student={student} avgData={avgData}/>
+                                    </div>
+                                )
+                            })
+                        }
+                    </div>
+                    : <h3>No Cohort information</h3>
             }
         </div>
     )

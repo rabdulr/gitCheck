@@ -9,6 +9,7 @@ const Student = ({student, avgData}) => {
     const [open, setOpen] = useState(false);
 
     const {repository, name} = student;
+    console.log('name: ', name)
     const {repo} = repository;
     
     return(

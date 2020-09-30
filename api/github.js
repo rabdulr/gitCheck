@@ -86,7 +86,7 @@ const createCommitList = async (token, commitItem, arr) => {
             if(newCommit.parents && newCommit.parents.length > 0) {
                 await Promise.all(
                     newCommit.parents.map(async (sha) => {
-                        await timedPromise(50, createCommitList(token, sha, arr));
+                        await timedPromise(1000, createCommitList(token, sha, arr));
                     })
                 )
             }
@@ -155,7 +155,7 @@ router.get('/getUsers', async (req, res) => {
                 }))
                 .catch(err => console.log(err));
         }));
-        const cohort = chunkedData.flat();
+        const cohort = chunkedData.flat().filter(item => item !== undefined);
         // const cohort = await Promise.all(COHORT.map(async(student) => {
         //     return await startGetUser(token, student);
         // }))
@@ -180,7 +180,7 @@ const startGetUser = async (token, student) => {
     console.log(`STARTING PROCESS: ${student}`)
     const info = {};
     info.name = student;
-    info.repository = await timedPromise(50, getUserInfo(token, student));
+    info.repository = await timedPromise(1000, getUserInfo(token, student));
     console.log(`ENDING PROCESS: ${student}`)
     return info
 };
