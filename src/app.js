@@ -14,6 +14,7 @@ const App = () => {
     const [student, setStudent] = useState(JSON.parse(window.localStorage.getItem('student')));
     const [cohort, setCohort] = useState(JSON.parse(window.localStorage.getItem('cohort')));
     const [avgData, setAvgData] = useState([]);
+    const [limits, setLimits] = useState({});
 
     useEffect(() =>{
         // attempting to clear accesss_token from URL
@@ -81,15 +82,24 @@ const App = () => {
                 console.log('Pulling from storage!');
             } else {
                 const {data:{limit, cohort}} = await axios.get('/api/github/getUsers', {params: {token}})
+                if(!cohort) return;
                 setCohort(cohort);
                 localStorage.setItem('cohort', JSON.stringify(cohort));
             }
         } catch (error) {
             throw error;
         }
+    };
+
+    const getLimit = async () => {
+        try {
+            const {data:limit} = await axios.get('/api/github/getLimit', {params: {token}})
+            setLimits(limit);
+        } catch (error) {
+            throw error;
+        }
     }
 
-console.log('avg: ', avgData)
     return(
         <div>
             <h1>GitCheck FSA</h1>
@@ -100,16 +110,19 @@ console.log('avg: ', avgData)
                         <button onClick={logOut}>Log Out</button>
                         <button onClick={getStudent}>Get User</button>
                         <button onClick={getStudents}>Get Students</button>
+                        <button onClick={getLimit}>Get Limits</button>
                     </div> : 
                     <div>
                         <button onClick={gitHubLogin}>GitHub Login</button>
                     </div>
             }
+            <h3>Limits</h3>
+            <ReactJson src={limits}/>
             <h3>Data</h3>
             {
                 avgData.length > 0 ? 
                 <div>
-                    <LineChart width={600} height={300} data={avgData[0].avgData} margin={{top: 5, right: 20, bottom: 5, left: 0}}>
+                    <LineChart width={800} height={300} data={avgData[0].avgData} margin={{top: 5, right: 20, bottom: 5, left: 0}}>
                         <CartesianGrid stroke="#ccc" strokeDasharray="5 5" />
                         <XAxis dataKey="day" />
                         <YAxis domain={[0, 'dataMax + 1']}/>
@@ -126,7 +139,6 @@ console.log('avg: ', avgData)
                 <div>
                 {   
                     cohort.map(student => {
-                        console.log(student);
                         return(
                             <div key={student.name}>
                                 <Students student={student} avgData={avgData}/>

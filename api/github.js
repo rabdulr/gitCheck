@@ -22,6 +22,7 @@ const getLimit = async (token) => {
     return limit;
 };
 
+
 const getUserInfo = async (token, username) => {
     try {
         const URL = `https://api.github.com/users/${username}`;
@@ -118,6 +119,16 @@ router.get('/callback', async (req, res, next) => {
     }
 })
 
+router.get('/getLimit', async (req, res, next) => {
+    const {token} = req.query
+    try {
+        const limit = await getLimit(token);
+        res.send({limit})
+    } catch (error) {
+        throw error;
+    }
+});
+
 router.get('/getUser', async (req, res) => {
     const {token} = req.query;
     // Call limit later as own function
@@ -132,14 +143,19 @@ router.get('/getUser', async (req, res) => {
 router.get('/getUsers', async (req, res) => {
     const{token} = req.query;
     // Function below with mapping
-    console.log(COHORT)
-    const cohort = await Promise.all(COHORT.map(async(student) => {
-        const info = {};
-        info.name = student;
-        info.repository = await getUserInfo(token, student);
-        return info
-    }));
-    res.send({cohort})
+    try {
+        console.log(COHORT)
+        const cohort = await Promise.all(COHORT.map(async(student) => {
+            const info = {};
+            info.name = student;
+            info.repository = await getUserInfo(token, student);
+            return info
+        }))
+            .catch(err => console.log(err));
+        res.send({cohort})
+    } catch (error) {
+        throw error;
+    }
 })
 
 module.exports = {

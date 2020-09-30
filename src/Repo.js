@@ -2,11 +2,16 @@ import React, {useState, useEffect} from 'react';
 import Project from './Project';
 import { LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip, Legend} from 'recharts';
 import {basicCommitLineData, findData, combineData} from '../functions';
+import Card from 'react-bootstrap/Card';
+import Collapse from 'react-bootstrap/Collapse';
+import ListGroupItem from 'react-bootstrap/ListGroupItem';
+import ListGroup from 'react-bootstrap/ListGroup';
 
 const Repos = ({project, idx, avgData}) => {
     const [data, setData] = useState(basicCommitLineData(project));
     const [classData, setClassData] = useState(findData(avgData, project.name));
-    const [combinedData, setCombinedData] = useState(combineData(data, classData))
+    const [combinedData, setCombinedData] = useState(combineData(data, classData));
+    const [open, setOpen] = useState(false);
     const {commit_counts} = project;
     
     useEffect(() => {
@@ -33,7 +38,7 @@ const Repos = ({project, idx, avgData}) => {
             {
                 data.length > 0 ? 
                 <div>
-                    <LineChart width={600} height={300} data={combinedData || data} margin={{top: 5, right: 20, bottom: 5, left: 0}}>
+                    <LineChart width={800} height={300} data={combinedData || data} margin={{top: 5, right: 20, bottom: 5, left: 0}}>
                         <CartesianGrid stroke="#ccc" strokeDasharray="5 5" />
                         <XAxis dataKey="day" />
                         <YAxis domain={[0, 'dataMax + 1']}/>
@@ -51,12 +56,19 @@ const Repos = ({project, idx, avgData}) => {
                 <li>Project Updated Date: {project.updated_at}</li>
                 <li>Project Pushed Date: {project.pushed_at}</li>
                 <li>Project Commit Counts: {project.commit_counts.length}</li>
-                {
-                    (commit_counts.length > 0) ? 
+                        <ListGroupItem onClick={() => setOpen(!open)}>Project Commit Counts: {project.commit_counts.length}</ListGroupItem>
+                        <Collapse in={open}>
+                            <h3>Hello Data!</h3>
+                        </Collapse>
+                    {
+                        commit_counts.length > 0 ? 
                         commit_counts.map((commit, idx) => {
-                            return ( <div key={commit.sha}><Project commit={commit} /></div>)
-                        }) : ''
-                }
+                            return ( 
+                                <div key={commit.sha}>
+                                    <Project commit={commit} />
+                                </div>)
+                            }) : <h3>No Data</h3>
+                        }
             </ul>
         </div>
     )

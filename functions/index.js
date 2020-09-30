@@ -116,21 +116,23 @@ const combineData = (userData, avgData) => {
 
     const dictionary = {};
 
-    userData.map(user => {
-        dictionary[user.day] = {
-            commits: user.commits
+    avgData.map(avg => {
+        dictionary[avg.day] = {
+            avgCommits: avg.avgCommits
         };
     });
-
-    avgData.map(avg => {
-        if(!(avg.day in dictionary)) {
-            dictionary[avg.day] = {
-                avgCommits: avg.avgCommits
+    
+    userData.map(user => {
+        if(!(user.day in dictionary)) {
+            dictionary[user.day] = {
+                commits: user.commits
             }
         } else {
-            dictionary[avg.day].avgCommits = avg.avgCommits;
+            dictionary[user.day].commits = user.commits;
         }
+        
     });
+
 
     const combinedArray = Object.keys(dictionary).map(key => {
         const {commits, avgCommits} = dictionary[key]
