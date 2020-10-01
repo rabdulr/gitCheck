@@ -1,9 +1,6 @@
 // Graphing functions
 
 const basicCommitLineData = ({commit_counts}) => {
-    // Need to return back an array w/ objects
-    // Chart is dependent on library
-    // React-vis is a bit fiddly
     
     if(commit_counts === 0) return;
 
@@ -12,7 +9,7 @@ const basicCommitLineData = ({commit_counts}) => {
         const utc = new Date(commit.commit.author.date);
         const commitDate = utc.getUTCDate();
         const commitMonth = utc.getUTCMonth();
-        const commitDay = utc.getUTCDay();
+        const commitDay = utc.getUTCDay(); // Keeping for due date/day
         const newDateObj = `${commitMonth}/${commitDate}`;
         newDate.date = commitDate;
         newDate.month = commitMonth;
@@ -65,7 +62,8 @@ const projectAvg = (cohort, project) => {
     cohort.map(student => {
         const {repository:{repo}} = student
         repo.map(repoInfo => {
-            if(repoInfo.name.toLowerCase().includes(project)) repos.push(repoInfo);
+            // splitHairs(repoInfo.name.toLowerCase(), project))
+            if(splitHairs(repoInfo.name.toLowerCase(), project)) repos.push(repoInfo);
         })
     })
     
@@ -79,7 +77,6 @@ const projectAvg = (cohort, project) => {
         return {day, avgCommits}
     })
     return { project, avgData }
-    console.log('data info: ', avgData)
 }
 
 // Helper function for projectAvg()
@@ -104,7 +101,7 @@ const calcRepoData = (repoData) => {
 
 // Match data with repo
 const findData = (dataList, projectName) => {
-    const matchProj = dataList.filter(data => projectName.toLowerCase().includes(data.project));
+    const matchProj = dataList.filter(data => splitHairs(projectName.toLowerCase(), data.project));
     if(!matchProj.length) return null;
     const {avgData} = matchProj[0];
     return avgData
@@ -144,9 +141,53 @@ const combineData = (userData, avgData) => {
 
 };
 
+const splitHairs = (word, name) => {
+    let dictionary = {}
+  
+    const splitWord = word.split('')
+    splitWord.forEach(letter => {
+      if(!(letter in dictionary)){
+        dictionary[letter] = 1
+      } else {
+        dictionary[letter]++;
+      }
+    });
+  
+    name.split('').forEach(letter => {
+      if(dictionary[letter] > 0) {
+        dictionary[letter]--
+      }
+  
+      if(!dictionary[letter]) {
+        delete dictionary[letter]
+      }
+    });
+  
+    return Object.keys(dictionary).length === 0
+}
+
+const checkRepoName = (name) => {
+    const projects = ['juicebox', 'phenomena']
+    const isTrue = projects.map(project => {
+        return splitHairs(project, name)
+    })
+    return isTrue.includes(true);
+};
+
+const timedPromise = (time, payload) => {
+    return new Promise(resolve => {
+        setTimeout(() => {
+            resolve(payload)
+        }, time)
+    })
+}
+
 module.exports = {
     basicCommitLineData,
     projectAvg,
     findData,
-    combineData
+    combineData,
+    splitHairs,
+    checkRepoName,
+    timedPromise
 }

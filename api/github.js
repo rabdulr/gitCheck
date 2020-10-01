@@ -1,6 +1,7 @@
 const router = require('express').Router();
 const {STUDENT_LIST, CLIENT_ID, CLIENT_SECRET} = process.env;
-const COHORT = JSON.parse(STUDENT_LIST)
+const COHORT = JSON.parse(STUDENT_LIST);
+const {splitHairs, checkRepoName, timedPromise} = require('../functions')
 const axios = require('axios');
 const redis = require('redis');
 const REDIST_PORT = 6379;
@@ -24,40 +25,6 @@ const getLimit = async (token) => {
     const { data:limit } = await axios('https://api.github.com/rate_limit', headers(token));
     return limit;
 };
-
-const splitHairs = (word, name) => {
-    let dictionary = {}
-  
-    const splitWord = word.split('')
-    splitWord.forEach(letter => {
-      if(!(letter in dictionary)){
-        dictionary[letter] = 1
-      } else {
-        dictionary[letter]++;
-      }
-    });
-  
-    name.split('').forEach(letter => {
-      if(dictionary[letter] > 0) {
-        dictionary[letter]--
-      }
-  
-      if(!dictionary[letter]) {
-        delete dictionary[letter]
-      }
-    });
-  
-    return Object.keys(dictionary).length === 0
-}
-
-const checkRepoName = (name) => {
-    const projects = ['juicebox', 'phenomena']
-    const isTrue = projects.map(project => {
-        return splitHairs(project, name)
-    })
-    return isTrue.includes(true);
-}
-
 
 const getUserInfo = async (token, username) => {
     try {
@@ -178,13 +145,7 @@ router.get('/getUser', async (req, res) => {
     res.send({student})
 });
 
-const timedPromise = (time, payload) => {
-    return new Promise(resolve => {
-        setTimeout(() => {
-            resolve(payload)
-        }, time)
-    })
-}
+
 router.get('/getUsers', async (req, res) => {
     const{token} = req.query;
     // Function below with mapping
@@ -194,7 +155,7 @@ router.get('/getUsers', async (req, res) => {
         let delayTime = 0;
         const chunkedData = await Promise.all(chunkList.map(async (set) => {
             return await Promise.all(set.map(async (username) => {
-                delayTime += 500
+                delayTime += 50
                 const {data:{student}} = await timedPromise(delayTime, axios.get(`http://localhost:3000/api/github/getUsers/${username}`, {params: {token}}))
                 return student;
             }))
