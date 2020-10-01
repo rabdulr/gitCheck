@@ -56,7 +56,7 @@ const getUserInfo = async (token, username) => {
                 await Promise.all(
                     commitMaster.parents.map(async (sha) => {
                             await createCommitList(token, sha, commitList)
-                    })
+                    }).catch(err => console.log(err))
                 )
             }
             repo.commit_counts = await commitList;
@@ -86,8 +86,8 @@ const createCommitList = async (token, commitItem, arr) => {
             if(newCommit.parents && newCommit.parents.length > 0) {
                 await Promise.all(
                     newCommit.parents.map(async (sha) => {
-                        await timedPromise(1000, createCommitList(token, sha, arr));
-                    })
+                        await createCommitList(token, sha, arr);
+                    }).catch(err => console.log(err))
                 )
             }
         } else {
@@ -149,9 +149,11 @@ router.get('/getUsers', async (req, res) => {
     try {
         console.log(COHORT)
         const chunkList = chunkStudentList(COHORT, 2);
+        let delayTime = 0;
         const chunkedData = await Promise.all(chunkList.map(async (set) => {
             return await Promise.all(set.map(async(student) => {
-                    return await startGetUser(token, student);
+                    delayTime += 1000
+                    return await timedPromise(delayTime, startGetUser(token, student));
                 }))
                 .catch(err => console.log(err));
         }));
@@ -180,7 +182,7 @@ const startGetUser = async (token, student) => {
     console.log(`STARTING PROCESS: ${student}`)
     const info = {};
     info.name = student;
-    info.repository = await timedPromise(1000, getUserInfo(token, student));
+    info.repository = await getUserInfo(token, student);
     console.log(`ENDING PROCESS: ${student}`)
     return info
 };

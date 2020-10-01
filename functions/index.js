@@ -12,6 +12,7 @@ const basicCommitLineData = ({commit_counts}) => {
         const utc = new Date(commit.commit.author.date);
         const commitDate = utc.getUTCDate();
         const commitMonth = utc.getUTCMonth();
+        const commitDay = utc.getUTCDay();
         const newDateObj = `${commitMonth}/${commitDate}`;
         newDate.date = commitDate;
         newDate.month = commitMonth;
