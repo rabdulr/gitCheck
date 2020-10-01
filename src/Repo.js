@@ -55,20 +55,19 @@ const Repos = ({project, idx, avgData}) => {
                 <li>Project Creation Date: {project.created_at}</li>
                 <li>Project Updated Date: {project.updated_at}</li>
                 <li>Project Pushed Date: {project.pushed_at}</li>
-                <li>Project Commit Counts: {project.commit_counts.length}</li>
-                        <ListGroupItem onClick={() => setOpen(!open)}>Project Commit Counts: {project.commit_counts.length}</ListGroupItem>
-                        <Collapse in={open}>
-                            <h3>Hello Data!</h3>
-                        </Collapse>
-                    {/* {
-                        commit_counts.length > 0 ? 
+                <ListGroupItem onClick={() => setOpen(!open)}>Project Commit Counts: {project.commit_counts.length}</ListGroupItem>
+                <Collapse in={open}>
+                    <ul>
+                    {
                         commit_counts.map((commit, idx) => {
                             return ( 
-                                <div key={commit.sha}>
+                                <div key={Math.random() + idx}>
                                     <Project commit={commit} />
                                 </div>)
-                            }) : <h3>No Data</h3>
-                    } */}
+                            })
+                    }
+                    </ul>
+                </Collapse>
             </ul>
         </div>
     )

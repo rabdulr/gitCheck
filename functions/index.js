@@ -101,7 +101,7 @@ const calcRepoData = (repoData) => {
 
 // Match data with repo
 const findData = (dataList, projectName) => {
-    const matchProj = dataList.filter(data => splitHairs(projectName.toLowerCase(), data.project));
+    const matchProj = dataList.filter(data => splitHairs(data.project, projectName.toLowerCase()));
     if(!matchProj.length) return null;
     const {avgData} = matchProj[0];
     return avgData
