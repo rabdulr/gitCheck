@@ -67,7 +67,7 @@ const App = () => {
             } else {
                 const {data:{limit, student}} = await axios.get('/api/github/getUser', {params: {token}})
                 setStudent(student);
-                localStorage.setItem('student', JSON.stringify(student))
+                // localStorage.setItem('student', JSON.stringify(student))
             }
         } catch (error) {
             throw error

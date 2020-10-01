@@ -2,6 +2,9 @@ const router = require('express').Router();
 const {STUDENT_LIST, CLIENT_ID, CLIENT_SECRET} = process.env;
 const COHORT = JSON.parse(STUDENT_LIST)
 const axios = require('axios');
+const redis = require('redis');
+const REDIST_PORT = 6379;
+const redisCLient = redis.createClient();
 
 // Cohort information is currently hard coded
 // Will need to create a way to get from an array on Front End
@@ -31,7 +34,9 @@ const getUserInfo = async (token, username) => {
         const {data:user} = await axios(`${URL}`, headers);
         const {data:repos} = await axios(`${URL}/repos`, headers(token));
         await Promise.all(repos.map(async (repo) => {
-            // acc = [];
+            // create a function in which we look at the name and cross check a list of repos of repos we are looking for
+            // If repo is not part of list, create a new key .ignore = true, return
+            // run function to filter out repos with .ignore
             
             delete repo.owner;
             
@@ -56,8 +61,8 @@ const getUserInfo = async (token, username) => {
                 await Promise.all(
                     commitMaster.parents.map(async (sha) => {
                             await createCommitList(token, sha, commitList)
-                    }).catch(err => console.log(err))
-                )
+                    })
+                ).catch(err => console.log(err))
             }
             repo.commit_counts = await commitList;
             // acc.push(repo);
@@ -87,8 +92,8 @@ const createCommitList = async (token, commitItem, arr) => {
                 await Promise.all(
                     newCommit.parents.map(async (sha) => {
                         await createCommitList(token, sha, arr);
-                    }).catch(err => console.log(err))
-                )
+                    })
+                ).catch(err => console.log(err))
             }
         } else {
             return;
@@ -151,11 +156,13 @@ router.get('/getUsers', async (req, res) => {
         const chunkList = chunkStudentList(COHORT, 2);
         let delayTime = 0;
         const chunkedData = await Promise.all(chunkList.map(async (set) => {
-            return await Promise.all(set.map(async(student) => {
-                    delayTime += 1000
-                    return await timedPromise(delayTime, startGetUser(token, student));
-                }))
-                .catch(err => console.log(err));
+            return await Promise.all(set.map(async (username) => {
+                delayTime += 1000
+                // return await timedPromise(delayTime, await axios.get(`http://localhost:3000/api/github/getUsers/${username}`, {params: {token}}));
+                const {data:{student}} = await timedPromise(delayTime, axios.get(`http://localhost:3000/api/github/getUsers/${username}`, {params: {token}}))
+                return student;
+            }))
+            .catch(err => console.log(err));
         }));
         const cohort = chunkedData.flat().filter(item => item !== undefined);
         // const cohort = await Promise.all(COHORT.map(async(student) => {
@@ -168,6 +175,33 @@ router.get('/getUsers', async (req, res) => {
         throw error;
     }
 });
+router.get('/getUsers/:username', cache, async (req, res) => {
+    const {username} = req.params;
+    const {token} = req.query;
+    try {
+        const student = await startGetUser(token, username)
+        res.send({student})
+    } catch (error) {
+        throw error
+    }
+})
+
+// Redis
+
+function cache(req, res, next) {
+    const {username} = req.params
+    console.log("REDIS CONSOLE: ", username)
+    redisCLient.get(username, (error, cachedData) => {
+        if (error) throw error;
+        if (cachedData !== null) {
+            console.log(`PULLING REDIS for ${username}`)
+            const student = JSON.parse(cachedData)
+            res.send({student})
+        } else {
+            next()
+        }
+    })
+}
 
 const chunkStudentList = (list, size) => {
     const result = [];
@@ -184,6 +218,7 @@ const startGetUser = async (token, student) => {
     info.name = student;
     info.repository = await getUserInfo(token, student);
     console.log(`ENDING PROCESS: ${student}`)
+    redisCLient.setex(info.name, 18000, JSON.stringify(info));
     return info
 };
 
