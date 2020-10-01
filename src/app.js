@@ -61,32 +61,21 @@ const App = () => {
     const getStudent = async () => {
         const user = localStorage.getItem('student');
         try {
-            if(user) {
-                setStudent(JSON.parse(user));
-                console.log('Pulling from storage!');
-            } else {
                 const {data:{limit, student}} = await axios.get('/api/github/getUser', {params: {token}})
                 setStudent(student);
                 // localStorage.setItem('student', JSON.stringify(student))
-            }
         } catch (error) {
             throw error
         }
     }
 
     const getStudents = async () => {
-        const users = localStorage.getItem('cohort');
+        // const users = localStorage.getItem('cohort');
         try {
-            if (users) {
-                setCohort(JSON.parse(users));
-                console.log('Pulling from storage!');
-            } else {
-                const {data:{limit, cohort}} = await axios.get('/api/github/getUsers', {params: {token}})
-                console.log('FE COHORT: ', cohort)
-                if(!cohort) return;
-                setCohort(cohort);
-                localStorage.setItem('cohort', JSON.stringify(cohort));
-            }
+            const {data:{limit, cohort}} = await axios.get('/api/github/getUsers', {params: {token}})
+            console.log('FE COHORT: ', cohort)
+            if(!cohort) return;
+            setCohort(cohort);
         } catch (error) {
             throw error;
         }

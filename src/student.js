@@ -9,7 +9,6 @@ const Student = ({student, avgData}) => {
     const [open, setOpen] = useState(false);
 
     const {repository, name} = student;
-    console.log('name: ', name)
     const {repo} = repository;
     
     return(
@@ -20,7 +19,7 @@ const Student = ({student, avgData}) => {
                     <Card.Subtitle className="mb-2 text-muted">{repository.login}</Card.Subtitle>
                     <ListGroup className="list-group-flush">
                         <ListGroupItem>Last Updated: {repository.updated_at}</ListGroupItem>
-                        <ListGroupItem onClick={() => setOpen(!open)}>Public Repositories: {repository.public_repos}</ListGroupItem>
+                        <ListGroupItem onClick={() => setOpen(!open)}>FSA Projects: {repo.length}</ListGroupItem>
                         <Collapse in={open}>
                             <ul>
                                 {

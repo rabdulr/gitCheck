@@ -25,6 +25,39 @@ const getLimit = async (token) => {
     return limit;
 };
 
+const splitHairs = (word, name) => {
+    let dictionary = {}
+  
+    const splitWord = word.split('')
+    splitWord.forEach(letter => {
+      if(!(letter in dictionary)){
+        dictionary[letter] = 1
+      } else {
+        dictionary[letter]++;
+      }
+    });
+  
+    name.split('').forEach(letter => {
+      if(dictionary[letter] > 0) {
+        dictionary[letter]--
+      }
+  
+      if(!dictionary[letter]) {
+        delete dictionary[letter]
+      }
+    });
+  
+    return Object.keys(dictionary).length === 0
+}
+
+const checkRepoName = (name) => {
+    const projects = ['juicebox', 'phenomena']
+    const isTrue = projects.map(project => {
+        return splitHairs(project, name)
+    })
+    return isTrue.includes(true);
+}
+
 
 const getUserInfo = async (token, username) => {
     try {
@@ -36,7 +69,10 @@ const getUserInfo = async (token, username) => {
         await Promise.all(repos.map(async (repo) => {
             // create a function in which we look at the name and cross check a list of repos of repos we are looking for
             // If repo is not part of list, create a new key .ignore = true, return
-            // run function to filter out repos with .ignore
+            console.log('Repo name (lower case): ', repo.name.toLowerCase())
+            repo.ignore = !checkRepoName(repo.name.toLowerCase());
+            console.log('Repo ignore: ', repo.ignore)
+            if(repo.ignore) return repo;
             
             delete repo.owner;
             
@@ -69,7 +105,8 @@ const getUserInfo = async (token, username) => {
             console.log(`ENDING REPO ${repo.name} for ${username}`)
             return repo
         }));
-        user.repo = repos;
+        // run function to filter out repos with .ignore
+        user.repo = repos.filter(repo => repo.ignore === false);
         // info[username].repo = repos;
         console.log(`FINISHED getting info for ${username}`)
         return user;
@@ -157,8 +194,7 @@ router.get('/getUsers', async (req, res) => {
         let delayTime = 0;
         const chunkedData = await Promise.all(chunkList.map(async (set) => {
             return await Promise.all(set.map(async (username) => {
-                delayTime += 1000
-                // return await timedPromise(delayTime, await axios.get(`http://localhost:3000/api/github/getUsers/${username}`, {params: {token}}));
+                delayTime += 500
                 const {data:{student}} = await timedPromise(delayTime, axios.get(`http://localhost:3000/api/github/getUsers/${username}`, {params: {token}}))
                 return student;
             }))
