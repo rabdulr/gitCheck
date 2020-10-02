@@ -4,6 +4,7 @@ const COHORT = JSON.parse(STUDENT_LIST);
 const {splitHairs, checkRepoName, timedPromise} = require('../functions')
 const axios = require('axios');
 const redis = require('redis');
+const sizeof = require('object-sizeof')
 const REDIST_PORT = 6379;
 const redisCLient = redis.createClient();
 
@@ -167,6 +168,7 @@ router.get('/getUsers', async (req, res) => {
         // }))
         // .catch(err => console.log(err));
         console.log({cohort})
+        console.log('Size of cohort file: ', sizeof(cohort))
         res.send({cohort})
     } catch (error) {
         throw error;
