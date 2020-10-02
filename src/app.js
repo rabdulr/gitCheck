@@ -38,14 +38,6 @@ const App = () => {
             setUserLogin(true);
         }  
     }, [])
-
-    useEffect(() => {
-        if (token && cohort ) {
-            const juiceBoxAvg = projectAvg(cohort, 'juicebox');
-            const phenomenaAvg = projectAvg(cohort, 'phenomena')
-            setAvgData([...avgData, juiceBoxAvg, phenomenaAvg])
-        }
-    }, [cohort])
     
     const gitHubLogin = () => {
         window.location.replace('https://github.com/login/oauth/authorize?client_id=2d9066f1cc065f4ad732&redirect_uri=http://localhost:3000/api/github/callback')
@@ -61,7 +53,7 @@ const App = () => {
     const getStudent = async () => {
         const user = localStorage.getItem('student');
         try {
-                const {data:{limit, student}} = await axios.get('/api/github/getUser', {params: {token}})
+                const {data:{student}} = await axios.get('/api/github/getUser', {params: {token}})
                 setStudent(student);
                 // localStorage.setItem('student', JSON.stringify(student))
         } catch (error) {
@@ -72,10 +64,11 @@ const App = () => {
     const getStudents = async () => {
         // const users = localStorage.getItem('cohort');
         try {
-            const {data:{limit, cohort}} = await axios.get('/api/github/getUsers', {params: {token}})
+            const {data:{returnedAvgData, cohort}} = await axios.get('/api/github/getUsers', {params: {token}})
             console.log('FE COHORT: ', cohort)
             if(!cohort) return;
             setCohort(cohort);
+            setAvgData(returnedAvgData)
         } catch (error) {
             throw error;
         }

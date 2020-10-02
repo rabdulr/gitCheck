@@ -1,12 +1,15 @@
 const router = require('express').Router();
 const {STUDENT_LIST, CLIENT_ID, CLIENT_SECRET} = process.env;
 const COHORT = JSON.parse(STUDENT_LIST);
-const {splitHairs, checkRepoName, timedPromise} = require('../functions')
+const {splitHairs, checkRepoName, timedPromise, projectAvg} = require('../functions')
 const axios = require('axios');
 const redis = require('redis');
 const sizeof = require('object-sizeof')
 const REDIST_PORT = 6379;
 const redisCLient = redis.createClient();
+
+// Project List for testing
+const PROJECTS = ['juicebox', 'phenomena']
 
 // Cohort information is currently hard coded
 // Will need to create a way to get from an array on Front End
@@ -75,7 +78,8 @@ const getUserInfo = async (token, username) => {
         }));
         // run function to filter out repos with .ignore
         user.repo = repos.filter(repo => repo.ignore === false);
-        // info[username].repo = repos;
+        // store repos information into redis for call back later
+        redisCLient.setex(`${username}.repo`, 18000, JSON.stringify(user.repo))
         console.log(`FINISHED getting info for ${username}`)
         return user;
     } catch (error) {
@@ -163,13 +167,11 @@ router.get('/getUsers', async (req, res) => {
             .catch(err => console.log(err));
         }));
         const cohort = chunkedData.flat().filter(item => item !== undefined);
-        // const cohort = await Promise.all(COHORT.map(async(student) => {
-        //     return await startGetUser(token, student);
-        // }))
-        // .catch(err => console.log(err));
+        // Calculate AVG Data for each project
+        const returnedAvgData = PROJECTS.map(project => {return projectAvg(cohort, project)});
         console.log({cohort})
         console.log('Size of cohort file: ', sizeof(cohort))
-        res.send({cohort})
+        res.send({cohort, returnedAvgData})
     } catch (error) {
         throw error;
     }
