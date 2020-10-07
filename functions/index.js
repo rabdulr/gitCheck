@@ -82,7 +82,7 @@ const projectAvg = (cohort, project) => {
         const {repository:{repo}} = student
         // Below may not be necessary due to projects being forked
         repo.map(repoInfo => {
-            if(splitHairs(repoInfo.name.toLowerCase(), project.toLowerCase())) repos.push(repoInfo);
+            if(splitHairs(repoInfo.name.toLowerCase(), project.name.toLowerCase())) repos.push(repoInfo);
         })
     })
     // get Array of all commits for each user
@@ -96,6 +96,10 @@ const projectAvg = (cohort, project) => {
     })
     compiledList.sort(compare);
     const avgData = adjustDateGaps(compiledList);
+    const used = process.memoryUsage();
+for (let key in used) {
+  console.log(`${key} ${Math.round(used[key] / 1024 / 1024 * 100) / 100} MB`);
+}
     return { project, avgData }
 }
 

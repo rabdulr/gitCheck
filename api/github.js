@@ -39,7 +39,8 @@ const getUserInfo = async (token, username) => {
         const {data:user} = await axios(`${URL}`, headers);
         const repos = await Promise.all(projects.map(async project => {
             // return project;
-            const {data} = await axios(`${PRIVATE_URL}/${project}`, headers(token));
+            const {data} = await axios(`${PRIVATE_URL}/${project.name}`, headers(token));
+            data.projectStart = new Date(project.date)
             return data
         }));
         await Promise.all(repos.map(async (repo) => {
@@ -74,7 +75,7 @@ const getUserInfo = async (token, username) => {
                 // Recursive function
                 await Promise.all(
                     commitMaster.parents.map(async (sha) => {
-                            await createCommitList(token, sha, username, commitList)
+                            await createCommitList(token, sha, username, commitList, repo.projectStart)
                     })
                 ).catch(err => console.log(err))
             }
@@ -83,10 +84,11 @@ const getUserInfo = async (token, username) => {
             console.log(`ENDING REPO ${repo.name} for ${username}`)
             return repo
         }));
+        
         // run function to filter out repos with .ignore
         user.repo = repos.filter(repo => repo.ignore === false);
         // store repos information into redis for call back later
-        redisCLient.setex(`${username}.repo`, 18000, JSON.stringify(user.repo));
+        // redisCLient.setex(`${username}.repo`, 18000, JSON.stringify(user.repo));
         console.log(`FINISHED getting info for ${username}`)
         return user;
     } catch (error) {
@@ -95,10 +97,11 @@ const getUserInfo = async (token, username) => {
     
 };
 
-const createCommitList = async (token, commitItem, username, arr) => {
+const createCommitList = async (token, commitItem, username, arr, projectStart) => {
     try {
         if(commitItem.url) {
             const {data:newCommit} = await axios(`${commitItem.url}`, headers(token));
+            if(new Date(newCommit.commit.author.date) < new Date(projectStart)) return;
             if(newCommit.author.login === username) {
                 arr.push(newCommit);
             }
@@ -108,7 +111,7 @@ const createCommitList = async (token, commitItem, username, arr) => {
             if(newCommit.parents && newCommit.parents.length > 0) {
                 await Promise.all(
                     newCommit.parents.map(async (sha) => {
-                        await createCommitList(token, sha, username, arr);
+                        await createCommitList(token, sha, username, arr, projectStart);
                     })
                 ).catch(err => console.log(err))
             }
