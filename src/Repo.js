@@ -43,8 +43,8 @@ const Repos = ({project, idx, avgData}) => {
                         <XAxis dataKey="day" />
                         <YAxis domain={[0, 'dataMax + 1']}/>
                         <Legend verticalAlign="top" height={10} />
-                        <Line type="monotone" dataKey="commits" stroke="#8884d8"/>
-                        <Line type="monotone" dataKey="avgCommits" stroke="#82ca9d"/>
+                        <Line type="monotone" dataKey="avgCommits" stroke="#82ca9d" />
+                        <Line type="monotone" dataKey="commits" stroke="#8884d8" strokeWidth="2"  dot={{ strokeWidth: 3 }}/>
                         <Tooltip />
                     </LineChart>
                 </div>

@@ -54,10 +54,23 @@ const getUserInfo = async (token, username) => {
             repo.ignore = false;
             
             delete repo.owner;
+
+            const forkInsert = {}
+            const commit = {
+                name: "fork",
+                author : {
+                    name: "Fork",
+                    date: repo.created_at
+                }
+            };
+
+            forkInsert.commit = commit;
             
             // const COMMIT_URL = `https://api.github.com/repos/${username}/${repo.name}`;
             
             const commitList = [];
+            // commitList.push(forkInsert);
+            console.log('fork: ', forkInsert)
             console.log(`STARTING REPO ${repo.name} for ${username}`)
             const response = await axios(`${repo.url}/commits/master`, headers(token)).catch(err => err.response.status);
             if(response === 409) {
@@ -180,10 +193,11 @@ router.get('/getUsers', async (req, res) => {
         const sorted = chunkedData.flat().filter(item => item !== undefined);
         // Calculate AVG Data for each project
         const returnedAvgData = projects.map(project => {return projectAvg(sorted, project)});
-        const cohort = sorted.map(student => {
-            delete student.repository.repo;
-            return student
-        })
+        const cohort = sorted;
+        // const cohort = sorted.map(student => {
+        //     delete student.repository.repo;
+        //     return student
+        // });
         console.log('avg Data: ', returnedAvgData);
         console.log('Size of cohort file: ', sizeof(cohort))
         res.send({cohort, returnedAvgData})

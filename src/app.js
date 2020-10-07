@@ -116,7 +116,7 @@ const App = () => {
                 </div>
                 : <h3>No Data</h3>
             }
-            {/* {
+            {
                 cohort ?
                     <div>
                         {   
@@ -130,7 +130,7 @@ const App = () => {
                         }
                     </div>
                     : <h3>No Cohort information</h3>
-            } */}
+            }
         </div>
     )
 }

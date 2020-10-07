@@ -6,6 +6,7 @@ const basicCommitLineData = ({commit_counts}) => {
     
     const commitArr = commit_counts.map(commit => {
         let newDate = {};
+        console.log(commit.commit.author)
         const utc = new Date(commit.commit.author.date);
         const commitDate = utc.getUTCDate();
         const commitMonth = utc.getUTCMonth() + 1;
@@ -19,9 +20,8 @@ const basicCommitLineData = ({commit_counts}) => {
     });
     
     const graphArr = [];
-
     createGraphData(commitArr, graphArr);
-
+    
     return graphArr;
 }
 
@@ -43,9 +43,14 @@ const createGraphData = (commitData, graphArr) => {
         i = nextIdx - 1;
         
         let nextDate = date - 1;
-        let nextMonth = month
+        let nextMonth = month;
         
         while( commitData[nextIdx] && nextDate !== commitData[nextIdx].date){
+            let filler = {};
+            filler.day = `${nextMonth}/${nextDate}`;
+            filler.commits = 0;
+            graphArr.push(filler);
+            nextDate--;
             if(nextDate === 0) {
                 nextMonth = month - 1 ? month - 1 : 12;
                 const days = {
@@ -64,11 +69,6 @@ const createGraphData = (commitData, graphArr) => {
                 };
                 nextDate = days[nextMonth]
             }
-            let filler = {};
-            filler.day = `${nextMonth}/${nextDate}`;
-            filler.commits = 0;
-            graphArr.push(filler);
-            nextDate--;
         }
     };
 };
@@ -77,12 +77,11 @@ const projectAvg = (cohort, project) => {
     // we know what the project is
     // need to go through each student/repo
     // match up with project
-    const repos = []
+    const repos = [];
     cohort.map(student => {
         const {repository:{repo}} = student
-        // Below may not be necessary due to projects being forked
         repo.map(repoInfo => {
-            if(splitHairs(repoInfo.name.toLowerCase(), project.name.toLowerCase())) repos.push(repoInfo);
+            if(repoInfo.name === project.name) repos.push(repoInfo);
         })
     })
     // get Array of all commits for each user
@@ -96,10 +95,6 @@ const projectAvg = (cohort, project) => {
     })
     compiledList.sort(compare);
     const avgData = adjustDateGaps(compiledList);
-    const used = process.memoryUsage();
-for (let key in used) {
-  console.log(`${key} ${Math.round(used[key] / 1024 / 1024 * 100) / 100} MB`);
-}
     return { project, avgData }
 }
 
@@ -108,25 +103,30 @@ const adjustDateGaps = (data) => {
     for(let i = 0; i < data.length; i++) {
         newArr.push(data[i]);
         const [monthA, dateA] = data[i].day.split('/');
-        if(data[i + 1]) {
+        if(i + 1 < data.length && data[i + 1]) {
             const [monthB, dateB] = data[i + 1].day.split('/');
+            const days = {
+                1 : 31,
+                2 : 28,
+                3 : 31,
+                4 : 30,
+                5 : 31,
+                6 : 30,
+                7 : 31,
+                8 : 31,
+                9 : 30,
+                10 : 31,
+                11 : 30,
+                12 : 31
+            };
             let date = (dateA * 1) + 1;
             let month = monthA * 1;
+            
+            if(date > days[month]) {
+                month = month + 1 > 12 ? 1 : month + 1;
+                date = 1
+            }
             while(date !== dateB*1) {
-                const days = {
-                    1 : 31,
-                    2 : 28,
-                    3 : 31,
-                    4 : 30,
-                    5 : 31,
-                    6 : 30,
-                    7 : 31,
-                    8 : 31,
-                    9 : 30,
-                    10 : 31,
-                    11 : 30,
-                    12 : 31
-                };
                 const gapFill = {};
                 gapFill.day = `${month}/${date}`;
                 gapFill.avgCommits = 0;
@@ -164,8 +164,13 @@ const calcRepoData = (repoData) => {
 
 // Match data with repo
 const findData = (dataList, projectName) => {
-    const matchProj = dataList.filter(data => splitHairs(data.project, projectName.toLowerCase()));
+    const matchProj = dataList.filter(data => {
+        console.log('data name: ', data.project.name, 'projectName: ', projectName)
+        console.log('is True? ', data.project.name === projectName)
+        return data.project.name === projectName
+    });
     if(!matchProj.length) return null;
+    console.log('match: ', matchProj)
     const {avgData} = matchProj[0];
     return avgData
 }
@@ -207,8 +212,8 @@ const combineData = (userData, avgData) => {
 // This will probably be removed if items are forked
 const splitHairs = (word, name) => {
     let dictionary = {};
-    if(word.toLowerCase() === name) return true;
-    const splitWord = word.toLowerCase().split('')
+    if(project === name) return true;
+    const splitWord = project.split('')
     splitWord.forEach(letter => {
       if(!(letter in dictionary)){
         dictionary[letter] = 1
