@@ -89,14 +89,53 @@ const projectAvg = (cohort, project) => {
     const repoData = repos.map(basicCommitLineData)
     // Combine information into Obj
     const dataInfo = calcRepoData(repoData);
-    const avgData = Object.keys(dataInfo).map(day => {
+    const compiledList = Object.keys(dataInfo).map(day => {
         const {commits, users} = dataInfo[day];
         const avgCommits = commits / users;
         return {day, avgCommits}
     })
-    avgData.sort(compare);
-    console.log('avgData: ', avgData)
+    compiledList.sort(compare);
+    const avgData = adjustDateGaps(compiledList);
     return { project, avgData }
+}
+
+const adjustDateGaps = (data) => {
+    const newArr = [];
+    for(let i = 0; i < data.length; i++) {
+        newArr.push(data[i]);
+        const [monthA, dateA] = data[i].day.split('/');
+        if(data[i + 1]) {
+            const [monthB, dateB] = data[i + 1].day.split('/');
+            let date = (dateA * 1) + 1;
+            let month = monthA * 1;
+            while(date !== dateB*1) {
+                const days = {
+                    1 : 31,
+                    2 : 28,
+                    3 : 31,
+                    4 : 30,
+                    5 : 31,
+                    6 : 30,
+                    7 : 31,
+                    8 : 31,
+                    9 : 30,
+                    10 : 31,
+                    11 : 30,
+                    12 : 31
+                };
+                const gapFill = {};
+                gapFill.day = `${month}/${date}`;
+                gapFill.avgCommits = 0;
+                newArr.push(gapFill);
+                date++;
+                if(date > days[month]) {
+                    month = month + 1 > 12 ? 1 : month + 1;
+                    date = 1
+                }
+            }
+        }
+    }
+    return newArr
 }
 
 // Helper function for projectAvg()
