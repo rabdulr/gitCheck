@@ -1,7 +1,7 @@
 const router = require('express').Router();
-const {STUDENT_LIST, CLIENT_ID, CLIENT_SECRET} = process.env;
+const {STUDENT_LIST, CLIENT_ID, CLIENT_SECRET, PROJECTS} = process.env;
 const COHORT = JSON.parse(STUDENT_LIST);
-const {splitHairs, checkRepoName, timedPromise, projectAvg} = require('../functions')
+const {splitHairs, checkRepoName, timedPromise, projectAvg, chunkStudentList} = require('../functions')
 const axios = require('axios');
 const redis = require('redis');
 const sizeof = require('object-sizeof')
@@ -9,7 +9,7 @@ const REDIST_PORT = 6379;
 const redisCLient = redis.createClient();
 
 // Project List for testing
-const PROJECTS = ['juicebox', 'phenomena']
+const projects = JSON.parse(PROJECTS)
 
 // Cohort information is currently hard coded
 // Will need to create a way to get from an array on Front End
@@ -34,16 +34,23 @@ const getUserInfo = async (token, username) => {
     try {
         console.log(`GETTING info for ${username}`)
         const URL = `https://api.github.com/users/${username}`;
+        const PRIVATE_URL = `https://api.github.com/repos/${username}`
         
         const {data:user} = await axios(`${URL}`, headers);
-        const {data:repos} = await axios(`${URL}/repos`, headers(token));
+        const repos = await Promise.all(projects.map(async project => {
+            // return project;
+            const {data} = await axios(`${PRIVATE_URL}/${project}`, headers(token));
+            return data
+        }));
         await Promise.all(repos.map(async (repo) => {
             // create a function in which we look at the name and cross check a list of repos of repos we are looking for
             // If repo is not part of list, create a new key .ignore = true, return
-            console.log('Repo name (lower case): ', repo.name.toLowerCase())
-            repo.ignore = !checkRepoName(repo.name.toLowerCase());
-            console.log('Repo ignore: ', repo.ignore)
-            if(repo.ignore) return repo;
+            // Repos are forks, therefore, no need to veriy
+            // console.log('Repo name (lower case): ', repo.name.toLowerCase())
+            // repo.ignore = !checkRepoName(repo.name.toLowerCase());
+            // console.log('Repo ignore: ', repo.ignore)
+            // if(repo.ignore) return repo;
+            repo.ignore = false;
             
             delete repo.owner;
             
@@ -61,13 +68,13 @@ const getUserInfo = async (token, username) => {
             delete commitMaster.author;
             delete commitMaster.owner;
             
-            // commitList.push(commitMaster.parents);
+            commitList.push(commitMaster);
             
             if(commitMaster.parents.length > 0) {
                 // Recursive function
                 await Promise.all(
                     commitMaster.parents.map(async (sha) => {
-                            await createCommitList(token, sha, commitList)
+                            await createCommitList(token, sha, username, commitList)
                     })
                 ).catch(err => console.log(err))
             }
@@ -79,7 +86,7 @@ const getUserInfo = async (token, username) => {
         // run function to filter out repos with .ignore
         user.repo = repos.filter(repo => repo.ignore === false);
         // store repos information into redis for call back later
-        redisCLient.setex(`${username}.repo`, 18000, JSON.stringify(user.repo))
+        redisCLient.setex(`${username}.repo`, 18000, JSON.stringify(user.repo));
         console.log(`FINISHED getting info for ${username}`)
         return user;
     } catch (error) {
@@ -88,19 +95,20 @@ const getUserInfo = async (token, username) => {
     
 };
 
-const createCommitList = async (token, commitItem, arr) => {
+const createCommitList = async (token, commitItem, username, arr) => {
     try {
         if(commitItem.url) {
             const {data:newCommit} = await axios(`${commitItem.url}`, headers(token));
-            // const newCommit = await newCommitResponse.json();
+            if(newCommit.author.login === username) {
+                arr.push(newCommit);
+            }
             delete newCommit.author;
             delete newCommit.owner;
             // potentially loop through to delete patch files as they can be large
-            arr.push(newCommit);
             if(newCommit.parents && newCommit.parents.length > 0) {
                 await Promise.all(
                     newCommit.parents.map(async (sha) => {
-                        await createCommitList(token, sha, arr);
+                        await createCommitList(token, sha, username, arr);
                     })
                 ).catch(err => console.log(err))
             }
@@ -139,16 +147,16 @@ router.get('/getLimit', async (req, res, next) => {
     }
 });
 
-router.get('/getUser', async (req, res) => {
-    const {token} = req.query;
-    // Call limit later as own function
-    // const limit = await getLimit(token);
-    const student = {}
-    // Have name be whater the body is for future
-    student.name = 'tillyninjaspace';
-    student.repository = await getUserInfo(token, 'tillyninjaspace'); 
-    res.send({student})
-});
+// router.get('/getUser', async (req, res) => {
+//     const {token} = req.query;
+//     // Call limit later as own function
+//     // const limit = await getLimit(token);
+//     const student = {}
+//     // Have name be whater the body is for future
+//     student.name = 'tillyninjaspace';
+//     student.repository = await getUserInfo(token, ''); 
+//     res.send({student})
+// });
 
 
 router.get('/getUsers', async (req, res) => {
@@ -166,27 +174,51 @@ router.get('/getUsers', async (req, res) => {
             }))
             .catch(err => console.log(err));
         }));
-        const cohort = chunkedData.flat().filter(item => item !== undefined);
+        const sorted = chunkedData.flat().filter(item => item !== undefined);
         // Calculate AVG Data for each project
-        const returnedAvgData = PROJECTS.map(project => {return projectAvg(cohort, project)});
-        console.log({cohort})
+        const returnedAvgData = projects.map(project => {return projectAvg(sorted, project)});
+        const cohort = sorted.map(student => {
+            delete student.repository.repo;
+            return student
+        })
+        console.log('avg Data: ', returnedAvgData);
         console.log('Size of cohort file: ', sizeof(cohort))
         res.send({cohort, returnedAvgData})
     } catch (error) {
         throw error;
     }
 });
+
 router.get('/getUsers/:username', cache, async (req, res) => {
     const {username} = req.params;
+    console.log('username (after student: ', username)
     const {token} = req.query;
     try {
-        const student = await startGetUser(token, username)
+        const student = await startGetUser(token, username);
         res.send({student})
     } catch (error) {
         throw error
     }
-})
+});
 
+// Breaking down repo calls
+router.get('/getUsers/:username/repo', async (req, res) => {
+    const {username} = req.params;
+    try {
+        redisCLient.get(`${username}.repo`, (error, cachedData) => {
+            if (error) throw error;
+            if (cachedData !== null) {
+                console.log(`PULLING REDIS REPO for ${username}`);
+                const repo = JSON.parse(cachedData);
+                res.send({repo})
+            } else {
+                return;
+            }
+        })
+    } catch (error) {
+        
+    }
+})
 // Redis
 
 function cache(req, res, next) {
@@ -202,16 +234,9 @@ function cache(req, res, next) {
             next()
         }
     })
-}
+};
 
-const chunkStudentList = (list, size) => {
-    const result = [];
-    for (let i = 0; i < list.length; i += size) {
-        let chunk = list.slice(i, i + size)
-        result.push(chunk)
-    }
-    return result;
-}
+
 
 const startGetUser = async (token, student) => {
     console.log(`STARTING PROCESS: ${student}`)

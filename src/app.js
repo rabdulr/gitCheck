@@ -40,7 +40,7 @@ const App = () => {
     }, [])
     
     const gitHubLogin = () => {
-        window.location.replace('https://github.com/login/oauth/authorize?client_id=2d9066f1cc065f4ad732&redirect_uri=http://localhost:3000/api/github/callback')
+        window.location.replace('https://github.com/login/oauth/authorize?client_id=2d9066f1cc065f4ad732&scope=repo&redirect_uri=http://localhost:3000/api/github/callback')
     }
 
     const logOut = () => {
@@ -116,7 +116,7 @@ const App = () => {
                 </div>
                 : <h3>No Data</h3>
             }
-            {
+            {/* {
                 cohort ?
                     <div>
                         {   
@@ -130,7 +130,7 @@ const App = () => {
                         }
                     </div>
                     : <h3>No Cohort information</h3>
-            }
+            } */}
         </div>
     )
 }

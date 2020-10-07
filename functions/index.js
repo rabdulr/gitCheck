@@ -3,12 +3,12 @@
 const basicCommitLineData = ({commit_counts}) => {
     
     if(commit_counts === 0) return;
-
+    
     const commitArr = commit_counts.map(commit => {
         let newDate = {};
         const utc = new Date(commit.commit.author.date);
         const commitDate = utc.getUTCDate();
-        const commitMonth = utc.getUTCMonth();
+        const commitMonth = utc.getUTCMonth() + 1;
         const commitDay = utc.getUTCDay(); // Keeping for due date/day
         const newDateObj = `${commitMonth}/${commitDate}`;
         newDate.date = commitDate;
@@ -27,29 +27,48 @@ const basicCommitLineData = ({commit_counts}) => {
 
 // Helper function for basicCommitLineData
 const createGraphData = (commitData, graphArr) => {
-    for(let i = commitData.length - 1; i >= 0 ; i--) {
+    // Commit data array should have the latest date at idx = 0
+    for(let i = 0; i < commitData.length ; i++) {
         const {date, month, commitDay, utc} = commitData[i];
         let newDataPoint = {};
         newDataPoint.day = commitDay;
         newDataPoint.commits = 1;
-
-        let nextIdx = i - 1;
+        
+        let nextIdx = i + 1;
         while(commitData[nextIdx] && date === commitData[nextIdx].date) { 
             newDataPoint.commits++;
-            nextIdx--
+            nextIdx++
         }
-
         graphArr.push(newDataPoint);
-        i = nextIdx + 1;
+        i = nextIdx - 1;
         
-        let nextDate = date + 1;
-
+        let nextDate = date - 1;
+        let nextMonth = month
+        
         while( commitData[nextIdx] && nextDate !== commitData[nextIdx].date){
+            if(nextDate === 0) {
+                nextMonth = month - 1 ? month - 1 : 12;
+                const days = {
+                    1 : 31,
+                    2 : 28,
+                    3 : 31,
+                    4 : 30,
+                    5 : 31,
+                    6 : 30,
+                    7 : 31,
+                    8 : 31,
+                    9 : 30,
+                    10 : 31,
+                    11 : 30,
+                    12 : 31
+                };
+                nextDate = days[nextMonth]
+            }
             let filler = {};
-            filler.day = `${month}/${nextDate}`;
+            filler.day = `${nextMonth}/${nextDate}`;
             filler.commits = 0;
             graphArr.push(filler);
-            nextDate++;
+            nextDate--;
         }
     };
 };
@@ -61,12 +80,11 @@ const projectAvg = (cohort, project) => {
     const repos = []
     cohort.map(student => {
         const {repository:{repo}} = student
+        // Below may not be necessary due to projects being forked
         repo.map(repoInfo => {
-            // splitHairs(repoInfo.name.toLowerCase(), project))
-            if(splitHairs(repoInfo.name.toLowerCase(), project)) repos.push(repoInfo);
+            if(splitHairs(repoInfo.name.toLowerCase(), project.toLowerCase())) repos.push(repoInfo);
         })
     })
-    
     // get Array of all commits for each user
     const repoData = repos.map(basicCommitLineData)
     // Combine information into Obj
@@ -76,6 +94,8 @@ const projectAvg = (cohort, project) => {
         const avgCommits = commits / users;
         return {day, avgCommits}
     })
+    avgData.sort(compare);
+    console.log('avgData: ', avgData)
     return { project, avgData }
 }
 
@@ -141,10 +161,11 @@ const combineData = (userData, avgData) => {
 
 };
 
+// This will probably be removed if items are forked
 const splitHairs = (word, name) => {
-    let dictionary = {}
-  
-    const splitWord = word.split('')
+    let dictionary = {};
+    if(word.toLowerCase() === name) return true;
+    const splitWord = word.toLowerCase().split('')
     splitWord.forEach(letter => {
       if(!(letter in dictionary)){
         dictionary[letter] = 1
@@ -153,7 +174,7 @@ const splitHairs = (word, name) => {
       }
     });
   
-    name.split('').forEach(letter => {
+    name.toLowerCase().split('').forEach(letter => {
       if(dictionary[letter] > 0) {
         dictionary[letter]--
       }
@@ -162,12 +183,11 @@ const splitHairs = (word, name) => {
         delete dictionary[letter]
       }
     });
-  
     return Object.keys(dictionary).length === 0
 }
 
 const checkRepoName = (name) => {
-    const projects = ['juicebox', 'phenomena']
+    const projects = [' UNIV_Phenomena_Starter']
     const isTrue = projects.map(project => {
         return splitHairs(project, name)
     })
@@ -180,8 +200,31 @@ const timedPromise = (time, payload) => {
             resolve(payload)
         }, time)
     })
+};
+
+const chunkStudentList = (list, size) => {
+    const result = [];
+    for (let i = 0; i < list.length; i += size) {
+        let chunk = list.slice(i, i + size)
+        result.push(chunk)
+    }
+    return result;
 }
 
+const compare = (a, b) => {
+    const dateA = new Date(a.day);
+    const dateB = new Date(b.day);
+
+    let comparison = 0;
+
+    if(dateA < dateB) {
+        comparison = 1;
+    } else if (dateA > dateB) {
+        comparison = -1;
+    }
+
+    return comparison * -1
+}
 module.exports = {
     basicCommitLineData,
     projectAvg,
@@ -189,5 +232,6 @@ module.exports = {
     combineData,
     splitHairs,
     checkRepoName,
-    timedPromise
+    timedPromise,
+    chunkStudentList
 }
