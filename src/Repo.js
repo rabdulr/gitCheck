@@ -60,6 +60,7 @@ const Repos = ({project, idx, avgData}) => {
                     <ul>
                     {
                         commit_counts.map((commit, idx) => {
+                            if(!commit.files) return;
                             return ( 
                                 <div key={Math.random() + idx}>
                                     <Project commit={commit} />

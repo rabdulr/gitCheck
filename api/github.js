@@ -69,8 +69,6 @@ const getUserInfo = async (token, username) => {
             // const COMMIT_URL = `https://api.github.com/repos/${username}/${repo.name}`;
             
             const commitList = [];
-            // commitList.push(forkInsert);
-            console.log('fork: ', forkInsert)
             console.log(`STARTING REPO ${repo.name} for ${username}`)
             const response = await axios(`${repo.url}/commits/master`, headers(token)).catch(err => err.response.status);
             if(response === 409) {
@@ -92,6 +90,7 @@ const getUserInfo = async (token, username) => {
                     })
                 ).catch(err => console.log(err))
             }
+            commitList.push(forkInsert);
             repo.commit_counts = await commitList;
             // acc.push(repo);
             console.log(`ENDING REPO ${repo.name} for ${username}`)

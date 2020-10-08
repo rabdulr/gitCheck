@@ -6,7 +6,6 @@ const basicCommitLineData = ({commit_counts}) => {
     
     const commitArr = commit_counts.map(commit => {
         let newDate = {};
-        console.log(commit.commit.author)
         const utc = new Date(commit.commit.author.date);
         const commitDate = utc.getUTCDate();
         const commitMonth = utc.getUTCMonth() + 1;
@@ -18,8 +17,8 @@ const basicCommitLineData = ({commit_counts}) => {
         newDate.utc = utc;
         return newDate;
     });
-    
     const graphArr = [];
+    commitArr.sort((a, b) => new Date(b.utc) - new Date(a.utc));
     createGraphData(commitArr, graphArr);
     
     return graphArr;
@@ -27,7 +26,6 @@ const basicCommitLineData = ({commit_counts}) => {
 
 // Helper function for basicCommitLineData
 const createGraphData = (commitData, graphArr) => {
-    // Commit data array should have the latest date at idx = 0
     for(let i = 0; i < commitData.length ; i++) {
         const {date, month, commitDay, utc} = commitData[i];
         let newDataPoint = {};
@@ -44,29 +42,34 @@ const createGraphData = (commitData, graphArr) => {
         
         let nextDate = date - 1;
         let nextMonth = month;
+
+        const days = {
+            1 : 31,
+            2 : 28,
+            3 : 31,
+            4 : 30,
+            5 : 31,
+            6 : 30,
+            7 : 31,
+            8 : 31,
+            9 : 30,
+            10 : 31,
+            11 : 30,
+            12 : 31
+        };
         
         while( commitData[nextIdx] && nextDate !== commitData[nextIdx].date){
+            if(nextDate <= 0) {
+                nextMonth = nextMonth - 1 ? nextMonth - 1 : 12;
+                nextDate = days[nextMonth]
+            }
             let filler = {};
             filler.day = `${nextMonth}/${nextDate}`;
             filler.commits = 0;
             graphArr.push(filler);
             nextDate--;
-            if(nextDate === 0) {
+            if(nextDate <= 0) {
                 nextMonth = month - 1 ? month - 1 : 12;
-                const days = {
-                    1 : 31,
-                    2 : 28,
-                    3 : 31,
-                    4 : 30,
-                    5 : 31,
-                    6 : 30,
-                    7 : 31,
-                    8 : 31,
-                    9 : 30,
-                    10 : 31,
-                    11 : 30,
-                    12 : 31
-                };
                 nextDate = days[nextMonth]
             }
         }
@@ -165,12 +168,9 @@ const calcRepoData = (repoData) => {
 // Match data with repo
 const findData = (dataList, projectName) => {
     const matchProj = dataList.filter(data => {
-        console.log('data name: ', data.project.name, 'projectName: ', projectName)
-        console.log('is True? ', data.project.name === projectName)
         return data.project.name === projectName
     });
     if(!matchProj.length) return null;
-    console.log('match: ', matchProj)
     const {avgData} = matchProj[0];
     return avgData
 }
