@@ -40,7 +40,7 @@ const App = () => {
     }, [])
     
     const gitHubLogin = () => {
-        window.location.replace('https://github.com/login/oauth/authorize?client_id=2d9066f1cc065f4ad732&scope=repo&redirect_uri=http://localhost:3000/api/github/callback')
+        window.location.replace('https://github.com/login/oauth/authorize?client_id=2d9066f1cc065f4ad732&scope=repo,user&redirect_uri=http://localhost:3000/api/github/callback')
     }
 
     const logOut = () => {
@@ -105,7 +105,7 @@ const App = () => {
             {
                 avgData.length > 0 ? 
                 <div>
-                    <LineChart width={900} height={300} data={avgData[1].avgData} margin={{top: 5, right: 0, bottom: 5, left: 0}}>
+                    <LineChart width={900} height={300} data={avgData[0].avgData} margin={{top: 5, right: 0, bottom: 5, left: 0}}>
                         <CartesianGrid stroke="#ccc" strokeDasharray="5 5" />
                         <XAxis dataKey="day" />
                         <YAxis domain={[0, 'auto']}/>

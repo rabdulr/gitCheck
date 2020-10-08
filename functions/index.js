@@ -1,4 +1,18 @@
 // Graphing functions
+const days = {
+    1 : 31,
+    2 : 28,
+    3 : 31,
+    4 : 30,
+    5 : 31,
+    6 : 30,
+    7 : 31,
+    8 : 31,
+    9 : 30,
+    10 : 31,
+    11 : 30,
+    12 : 31
+};
 
 const basicCommitLineData = ({commit_counts}) => {
     
@@ -42,21 +56,6 @@ const createGraphData = (commitData, graphArr) => {
         
         let nextDate = date - 1;
         let nextMonth = month;
-
-        const days = {
-            1 : 31,
-            2 : 28,
-            3 : 31,
-            4 : 30,
-            5 : 31,
-            6 : 30,
-            7 : 31,
-            8 : 31,
-            9 : 30,
-            10 : 31,
-            11 : 30,
-            12 : 31
-        };
         
         while( commitData[nextIdx] && nextDate !== commitData[nextIdx].date){
             if(nextDate <= 0) {
@@ -96,7 +95,7 @@ const projectAvg = (cohort, project) => {
         const avgCommits = commits / users;
         return {day, avgCommits}
     })
-    compiledList.sort(compare);
+    compiledList.sort((a, b) => new Date(a.day) - new Date(b.day));
     const avgData = adjustDateGaps(compiledList);
     return { project, avgData }
 }
@@ -108,20 +107,6 @@ const adjustDateGaps = (data) => {
         const [monthA, dateA] = data[i].day.split('/');
         if(i + 1 < data.length && data[i + 1]) {
             const [monthB, dateB] = data[i + 1].day.split('/');
-            const days = {
-                1 : 31,
-                2 : 28,
-                3 : 31,
-                4 : 30,
-                5 : 31,
-                6 : 30,
-                7 : 31,
-                8 : 31,
-                9 : 30,
-                10 : 31,
-                11 : 30,
-                12 : 31
-            };
             let date = (dateA * 1) + 1;
             let month = monthA * 1;
             
@@ -234,13 +219,14 @@ const splitHairs = (word, name) => {
     return Object.keys(dictionary).length === 0
 }
 
-const checkRepoName = (name) => {
-    const projects = [' UNIV_Phenomena_Starter']
-    const isTrue = projects.map(project => {
-        return splitHairs(project, name)
-    })
-    return isTrue.includes(true);
-};
+//currently not necessary - may be used for personal projects
+// const checkRepoName = (name) => {
+//     const projects = [' UNIV_Phenomena_Starter']
+//     const isTrue = projects.map(project => {
+//         return splitHairs(project, name)
+//     })
+//     return isTrue.includes(true);
+// };
 
 const timedPromise = (time, payload) => {
     return new Promise(resolve => {
@@ -259,27 +245,27 @@ const chunkStudentList = (list, size) => {
     return result;
 }
 
-const compare = (a, b) => {
-    const dateA = new Date(a.day);
-    const dateB = new Date(b.day);
+// Artifact of compare function
+// const compare = (a, b) => {
+//     const dateA = new Date(a.day);
+//     const dateB = new Date(b.day);
 
-    let comparison = 0;
+//     let comparison = 0;
 
-    if(dateA < dateB) {
-        comparison = 1;
-    } else if (dateA > dateB) {
-        comparison = -1;
-    }
+//     if(dateA < dateB) {
+//         comparison = 1;
+//     } else if (dateA > dateB) {
+//         comparison = -1;
+//     }
 
-    return comparison * -1
-}
+//     return comparison * -1
+// }
 module.exports = {
     basicCommitLineData,
     projectAvg,
     findData,
     combineData,
     splitHairs,
-    checkRepoName,
     timedPromise,
     chunkStudentList
 }

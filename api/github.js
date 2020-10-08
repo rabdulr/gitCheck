@@ -1,7 +1,7 @@
 const router = require('express').Router();
 const {STUDENT_LIST, CLIENT_ID, CLIENT_SECRET, PROJECTS} = process.env;
 const COHORT = JSON.parse(STUDENT_LIST);
-const {splitHairs, checkRepoName, timedPromise, projectAvg, chunkStudentList} = require('../functions')
+const {timedPromise, projectAvg, chunkStudentList} = require('../functions')
 const axios = require('axios');
 const redis = require('redis');
 const sizeof = require('object-sizeof')
@@ -46,7 +46,7 @@ const getUserInfo = async (token, username) => {
         await Promise.all(repos.map(async (repo) => {
             // create a function in which we look at the name and cross check a list of repos of repos we are looking for
             // If repo is not part of list, create a new key .ignore = true, return
-            // Repos are forks, therefore, no need to veriy
+            // Repos are forks, therefore, no need to veriy - functionality will work until personal projects appear
             // console.log('Repo name (lower case): ', repo.name.toLowerCase())
             // repo.ignore = !checkRepoName(repo.name.toLowerCase());
             // console.log('Repo ignore: ', repo.ignore)
@@ -66,8 +66,6 @@ const getUserInfo = async (token, username) => {
 
             forkInsert.commit = commit;
             
-            // const COMMIT_URL = `https://api.github.com/repos/${username}/${repo.name}`;
-            
             const commitList = [];
             console.log(`STARTING REPO ${repo.name} for ${username}`)
             const response = await axios(`${repo.url}/commits/master`, headers(token)).catch(err => err.response.status);
@@ -76,7 +74,6 @@ const getUserInfo = async (token, username) => {
                 return repo;
             };
             const {data:commitMaster} = response;
-            // const commitMaster = await commitMasterResponse.json();
             delete commitMaster.author;
             delete commitMaster.owner;
             
@@ -100,7 +97,7 @@ const getUserInfo = async (token, username) => {
         // run function to filter out repos with .ignore
         user.repo = repos.filter(repo => repo.ignore === false);
         // store repos information into redis for call back later
-        // redisCLient.setex(`${username}.repo`, 18000, JSON.stringify(user.repo));
+        redisCLient.setex(`${username}.repo`, 18000, JSON.stringify(user.repo));
         console.log(`FINISHED getting info for ${username}`)
         return user;
     } catch (error) {
@@ -139,7 +136,7 @@ const createCommitList = async (token, commitItem, username, arr, projectStart) 
 router.get('/callback', async (req, res, next) => {
     try {
         const requestToken = req.query.code
-        const {data:{access_token}} = await axios({
+        const {data: {access_token}} = await axios({
             method: 'post',
             url: `https://github.com/login/oauth/access_token?client_id=${CLIENT_ID}&client_secret=${CLIENT_SECRET}&code=${requestToken}`,
             headers: {
@@ -189,10 +186,9 @@ router.get('/getUsers', async (req, res) => {
             }))
             .catch(err => console.log(err));
         }));
-        const sorted = chunkedData.flat().filter(item => item !== undefined);
+        const cohort = chunkedData.flat().filter(item => item !== undefined);
         // Calculate AVG Data for each project
-        const returnedAvgData = projects.map(project => {return projectAvg(sorted, project)});
-        const cohort = sorted;
+        const returnedAvgData = projects.map(project => projectAvg(cohort, project));
         // const cohort = sorted.map(student => {
         //     delete student.repository.repo;
         //     return student
@@ -207,7 +203,6 @@ router.get('/getUsers', async (req, res) => {
 
 router.get('/getUsers/:username', cache, async (req, res) => {
     const {username} = req.params;
-    console.log('username (after student: ', username)
     const {token} = req.query;
     try {
         const student = await startGetUser(token, username);
