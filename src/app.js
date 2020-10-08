@@ -8,6 +8,7 @@ import Col from 'react-bootstrap/Col';
 import Nav from 'react-bootstrap/Nav';
 import ListGroup from 'react-bootstrap/ListGroup';
 import ListGroupItem from 'react-bootstrap/ListGroupItem';
+import { Scrollbars } from 'react-custom-scrollbars';
 
 
 import Student from './Student';
@@ -151,26 +152,23 @@ const App = () => {
                     </Row>
             </Container>
             <Container fluid>
-                <Row noGutters={true}>
+                <Row>
                     <Col xs={2}>
-                        {
-                            cohort ?
-                                <div>
-                                    {   
-                                        cohort.map(student => {
-                                            return(
-                                                <ListGroupItem action onClick={() => setStudentInfo(student)}>
-                                                    <div key={student.name}>
-                                                        <StudentCard student={student} avgData={avgData} />
-                                                    </div>
-                                                </ListGroupItem>
-                                            )
-                                        })
-                                    }
-                                </div>
-                                : <h4>No Cohort information</h4>
-                        }
-            
+                            {
+                                cohort ?
+                                    <Scrollbars style={{height: 650, marginTop: 0}} autoHide={true}>
+                                        {   
+                                            cohort.map(student => {
+                                                return(
+                                                    <ListGroupItem action onClick={() => setStudentInfo(student)}>
+                                                            <StudentCard student={student} avgData={avgData} />
+                                                    </ListGroupItem>
+                                                )
+                                            })
+                                        }
+                                     </Scrollbars>
+                                    : <h4>No Cohort information</h4>
+                            }
                     </Col>
                     <Col>
                         {
