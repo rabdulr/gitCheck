@@ -7,16 +7,14 @@ import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import Nav from 'react-bootstrap/Nav';
 import Card from 'react-bootstrap/Card';
-import DropdownButton from 'react-bootstrap/DropdownButton'
-import ListGroup from 'react-bootstrap/ListGroup';
-import ListGroupItem from 'react-bootstrap/ListGroupItem';
-import { Scrollbars } from 'react-custom-scrollbars';
+import Select from 'react-dropdown-select';
+import Spinner from 'react-bootstrap/Spinner';
 
 
 import Student from './Student';
 import StudentCard from './StudentCard';
 import Cohort from './Cohort';
-import { Dropdown } from 'react-bootstrap';
+import ClassView from './ClassView'
 
 
 const App = () => {
@@ -26,8 +24,9 @@ const App = () => {
     const [cohort, setCohort] = useState(JSON.parse(window.localStorage.getItem('cohort')));
     const [avgData, setAvgData] = useState([]);
     const [limits, setLimits] = useState({});
-    const [studentInfo, setStudentInfo] = useState();
-    const [allCohorts, setAllCohorts] = useState()
+
+    const [allCohorts, setAllCohorts] = useState();
+    const [cohortClass, setCohortClass] = useState();
 
     useEffect(() =>{
         // attempting to clear accesss_token from URL
@@ -82,11 +81,14 @@ const App = () => {
             console.log('FE COHORT: ', cohort)
             if(!cohort) return;
             const studentNames = cohort.map(student => student.name)
-            const cohortObj = {
-                name: '2006',
-                students: studentNames,
-                projects: [{"name": "UNIV_Phenomena_Starter", "date": "9/28/20"}, {"name": "UNIV_FitnessTrackr_Starter", "date": "10/5/20"}]
-            };
+            const cohortObj = [{
+                cohort: '2006',
+                value: {
+                    students: studentNames,
+                    projects: [{"name": "UNIV_Phenomena_Starter", "date": "9/28/20"}, {"name": "UNIV_FitnessTrackr_Starter", "date": "10/5/20"}],
+                    cohortData: cohort
+                }
+            }];
             setAllCohorts(cohortObj)
             setCohort(cohort);
             setAvgData(returnedAvgData)
@@ -131,15 +133,6 @@ const App = () => {
                         <h3>Access Token: {token ? token : `No Token Set`}</h3>
                     </Col>
                 </Row>
-                <Row>
-                    <Col>
-                        <h3>Limits</h3>
-                        <Row>
-                            <ReactJson src={limits}/>
-                        </Row>
-                    </Col>
-                </Row>
-
             </Container>
             <Container fluid>
                 <Row>
@@ -160,69 +153,23 @@ const App = () => {
                                         <Tooltip />
                                     </LineChart>
                                 </div>
-                                : <h3>No Data</h3>
+                                : <Spinner animation="border" />
                             }
                     </Row>
-                    <Row>
+                    {/* <Row>
                         {
                             allCohorts ?
                                 <Cohort cohort={allCohorts} />
                                 : <h3>No Data</h3>
                         }
-                    </Row>
+                    </Row> */}
             </Container>
             <Container fluid>
-                <Row>
-                    <Col xs={2}>
-                            {
-                                cohort ?
-                                    <Scrollbars style={{height: 650, marginTop: 0}} autoHide={true}>
-                                        {   
-                                            cohort.map(student => {
-                                                return(
-                                                    <ListGroupItem action onClick={() => setStudentInfo(student)}>
-                                                            <StudentCard student={student} avgData={avgData} />
-                                                    </ListGroupItem>
-                                                )
-                                            })
-                                        }
-                                     </Scrollbars>
-                                    : <h4>No Cohort information</h4>
-                            }
-                    </Col>
-                    <Col>
-                            <Row>
-                                Breadcrumbs
-                            </Row>
-                            <Row>
-
-                        {
-                            studentInfo ?
-                                <Student student={studentInfo} avgData={avgData}/>
-                                : <h4>No info</h4>
-                        }
-                            </Row>
-                    </Col>
-                </Row>
+                <Select options={allCohorts} onChange={(values) => setCohortClass(values[0].value)} labelField={"cohort"} valueField={"value"}/>
+                {
+                    cohortClass ? <ClassView cohort={cohortClass} avgData={avgData} /> : <div></div>
+                }
             </Container>
-
-            {/* {
-                cohort ?
-                    <div>
-                        {   
-                            cohort.map(student => {
-                                return(
-                                    <ListGroupItem>
-                                    <div key={student.name}>
-                                        <Student student={student} avgData={avgData}/>
-                                    </div>
-                                    </ListGroupItem>
-                                )
-                            })
-                        }
-                    </div>
-                    : <h3>No Cohort information</h3>
-            } */}
         </div>
     )
 }
