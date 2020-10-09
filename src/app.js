@@ -6,13 +6,17 @@ import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import Nav from 'react-bootstrap/Nav';
+import Card from 'react-bootstrap/Card';
+import DropdownButton from 'react-bootstrap/DropdownButton'
 import ListGroup from 'react-bootstrap/ListGroup';
 import ListGroupItem from 'react-bootstrap/ListGroupItem';
 import { Scrollbars } from 'react-custom-scrollbars';
 
 
 import Student from './Student';
-import StudentCard from './StudentCard'
+import StudentCard from './StudentCard';
+import Cohort from './Cohort';
+import { Dropdown } from 'react-bootstrap';
 
 
 const App = () => {
@@ -23,6 +27,7 @@ const App = () => {
     const [avgData, setAvgData] = useState([]);
     const [limits, setLimits] = useState({});
     const [studentInfo, setStudentInfo] = useState();
+    const [allCohorts, setAllCohorts] = useState()
 
     useEffect(() =>{
         // attempting to clear accesss_token from URL
@@ -45,6 +50,7 @@ const App = () => {
 
             setUserLogin(true);
         }  
+        getStudents();
     }, [])
     
     const gitHubLogin = () => {
@@ -75,6 +81,13 @@ const App = () => {
             const {data:{returnedAvgData, cohort}} = await axios.get('/api/github/getUsers', {params: {token}})
             console.log('FE COHORT: ', cohort)
             if(!cohort) return;
+            const studentNames = cohort.map(student => student.name)
+            const cohortObj = {
+                name: '2006',
+                students: studentNames,
+                projects: [{"name": "UNIV_Phenomena_Starter", "date": "9/28/20"}, {"name": "UNIV_FitnessTrackr_Starter", "date": "10/5/20"}]
+            };
+            setAllCohorts(cohortObj)
             setCohort(cohort);
             setAvgData(returnedAvgData)
         } catch (error) {
@@ -150,6 +163,13 @@ const App = () => {
                                 : <h3>No Data</h3>
                             }
                     </Row>
+                    <Row>
+                        {
+                            allCohorts ?
+                                <Cohort cohort={allCohorts} />
+                                : <h3>No Data</h3>
+                        }
+                    </Row>
             </Container>
             <Container fluid>
                 <Row>
@@ -171,11 +191,17 @@ const App = () => {
                             }
                     </Col>
                     <Col>
+                            <Row>
+                                Breadcrumbs
+                            </Row>
+                            <Row>
+
                         {
                             studentInfo ?
                                 <Student student={studentInfo} avgData={avgData}/>
                                 : <h4>No info</h4>
                         }
+                            </Row>
                     </Col>
                 </Row>
             </Container>
