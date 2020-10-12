@@ -2,8 +2,8 @@ import React, {useState, useEffect} from 'react';
 import ReactJson from 'react-json-view';
 
 const Cohort = ({cohort}) => {
-    const [studentsList, setStudentList] = useState(cohort.students);
-    const [projectList, setProjectList] = useState(cohort.projects);
+    const [studentsList, setStudentList] = useState(cohort[0].value.students);
+    const [projectList, setProjectList] = useState(cohort[0].value.projects);
 
     const removeStudent = (studentToRemove) => {
         const updatedList = studentsList.filter(student => student !== studentToRemove);

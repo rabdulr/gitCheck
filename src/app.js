@@ -14,15 +14,15 @@ import Spinner from 'react-bootstrap/Spinner';
 import Student from './Student';
 import StudentCard from './StudentCard';
 import Cohort from './Cohort';
-import ClassView from './ClassView'
+import ClassView from './ClassView';
+import CreateCohort from './CreateCohort';
 
 
 const App = () => {
     const [token, setToken] = useState(window.localStorage.getItem('token'));
     const [userLogin, setUserLogin] = useState(false)
     const [student, setStudent] = useState(JSON.parse(window.localStorage.getItem('student')));
-    const [cohort, setCohort] = useState(JSON.parse(window.localStorage.getItem('cohort')));
-    const [avgData, setAvgData] = useState([]);
+    // const [cohort, setCohort] = useState(JSON.parse(window.localStorage.getItem('cohort')));
     const [limits, setLimits] = useState({});
 
     const [allCohorts, setAllCohorts] = useState();
@@ -86,12 +86,13 @@ const App = () => {
                 value: {
                     students: studentNames,
                     projects: [{name: 'UNIV_Phenomena_Starter', date: '9/28/20'}, {name: 'UNIV_FitnessTrackr_Starter', date: '10/5/20'}],
-                    cohortData: cohort
+                    cohortData: cohort,
+                    cohortAvg: returnedAvgData
                 }
             }];
             setAllCohorts(cohortObj)
             setCohort(cohort);
-            setAvgData(returnedAvgData)
+            // setAvgData(returnedAvgData)
         } catch (error) {
             throw error;
         }
@@ -117,13 +118,13 @@ const App = () => {
                             {
                                 token ?
                                     <div>
-                                        <button onClick={logOut}>Log Out</button>
-                                        <button onClick={getStudent}>Get User</button>
-                                        <button onClick={getStudents}>Get Students</button>
-                                        <button onClick={getLimit}>Get Limits</button>
+                                        <button type="button" onClick={logOut}>Log Out</button>
+                                        <button type="button" onClick={getStudent}>Get User</button>
+                                        <button type="button" onClick={getStudents}>Get Students</button>
+                                        <button type="button" onClick={getLimit}>Get Limits</button>
                                     </div> :
                                     <div>
-                                        <button onClick={gitHubLogin}>GitHub Login</button>
+                                        <button type="button" onClick={gitHubLogin}>GitHub Login</button>
                                     </div>
                             }
                         </Nav>
@@ -135,20 +136,23 @@ const App = () => {
                 </Row>
             </Container>
             <Container fluid>
-                    {/* <Row>
-                        {
-                            allCohorts ?
-                                <Cohort cohort={allCohorts} />
-                                : <h3>No Data</h3>
-                        }
-                    </Row> */}
-            </Container>
-            <Container fluid>
-                <Select options={allCohorts} onChange={(values) => setCohortClass(values[0].value)} labelField={'cohort'} valueField={'value'}/>
+                <Select options={allCohorts} onChange={(values) => {console.log('values ', values); setCohortClass(values[0].value)}} labelField={'cohort'} valueField={'value'}/>
                 {
-                    cohortClass ? <ClassView cohort={cohortClass} avgData={avgData} /> : <div></div>
+                    cohortClass ? <ClassView cohort={cohortClass} avgData={cohortClass.cohortAvg} /> : <div></div>
                 }
             </Container>
+            <Container fluid>
+                <CreateCohort allCohorts={allCohorts} setAllCohorts={setAllCohorts} />
+            </Container>
+            {/* <Container fluid>
+                <Row>
+                    {
+                        allCohorts ?
+                            <Cohort cohort={allCohorts} />
+                            : <h3>No Data</h3>
+                    }
+                </Row>
+            </Container> */}
         </div>
     )
 }
