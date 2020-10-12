@@ -10,8 +10,8 @@ const Student = ({student, avgData}) => {
 
     const {repository, name} = student;
     const {repo} = repository;
-    
-    return(
+
+    return (
         <div>
             <Card>
                 <Card.Body>
@@ -26,7 +26,7 @@ const Student = ({student, avgData}) => {
                                     repo.map((project, idx) => {
                                         return (
                                             <div key={Math.random() + idx}>
-                                                <Repo project={project} idx={idx} avgData={avgData}/>
+                                                <Repo project={project} idx={idx} avgData={avgData} />
                                             </div>
                                         )
                                     })

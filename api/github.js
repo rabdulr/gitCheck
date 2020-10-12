@@ -19,14 +19,50 @@ const projects = JSON.parse(PROJECTS)
 const headers = (token) => {
     const header = {
         headers: {
-            'Authorization' : `token ${token}`
+            'Authorization': `token ${token}`
         }
     };
     return header;
 };
 
+const startGetUser = async (token, student) => {
+    console.log(`STARTING PROCESS: ${student}`)
+    const info = {};
+    info.name = student;
+    info.repository = await getUserInfo(token, student);
+    console.log(`ENDING PROCESS: ${student}`)
+    redisCLient.setex(info.name, 18000, JSON.stringify(info));
+    return info
+};
+
+const createCommitList = async (token, commitItem, username, arr, projectStart) => {
+    try {
+        if (commitItem.url) {
+            const {data: newCommit} = await axios(`${commitItem.url}`, headers(token));
+            if (new Date(newCommit.commit.author.date) < new Date(projectStart)) return;
+            if (newCommit.author.login === username) {
+                arr.push(newCommit);
+            }
+            delete newCommit.author;
+            delete newCommit.owner;
+            // potentially loop through to delete patch files as they can be large
+            if (newCommit.parents && newCommit.parents.length > 0) {
+                await Promise.all(
+                    newCommit.parents.map(async (sha) => {
+                        await createCommitList(token, sha, username, arr, projectStart);
+                    })
+                ).catch(err => console.log(err))
+            }
+        } else {
+            return;
+        }
+    } catch (error) {
+        throw error;
+    }
+};
+
 const getLimit = async (token) => {
-    const { data:limit } = await axios('https://api.github.com/rate_limit', headers(token));
+    const { data: limit } = await axios('https://api.github.com/rate_limit', headers(token));
     return limit;
 };
 
@@ -35,8 +71,8 @@ const getUserInfo = async (token, username) => {
         console.log(`GETTING info for ${username}`)
         const URL = `https://api.github.com/users/${username}`;
         const PRIVATE_URL = `https://api.github.com/repos/${username}`
-        
-        const {data:user} = await axios(`${URL}`, headers);
+
+        const {data: user} = await axios(`${URL}`, headers);
         const repos = await Promise.all(projects.map(async project => {
             // return project;
             const {data} = await axios(`${PRIVATE_URL}/${project.name}`, headers(token));
@@ -52,34 +88,34 @@ const getUserInfo = async (token, username) => {
             // console.log('Repo ignore: ', repo.ignore)
             // if(repo.ignore) return repo;
             repo.ignore = false;
-            
+
             delete repo.owner;
 
             const forkInsert = {}
             const commit = {
-                name: "fork",
-                author : {
-                    name: "Fork",
+                name: 'fork',
+                author: {
+                    name: 'Fork',
                     date: repo.created_at
                 }
             };
 
             forkInsert.commit = commit;
-            
+
             const commitList = [];
             console.log(`STARTING REPO ${repo.name} for ${username}`)
             const response = await axios(`${repo.url}/commits/master`, headers(token)).catch(err => err.response.status);
-            if(response === 409) {
+            if (response === 409) {
                 repo.commit_counts = commitList;
                 return repo;
-            };
-            const {data:commitMaster} = response;
+            }
+            const {data: commitMaster} = response;
             delete commitMaster.author;
             delete commitMaster.owner;
-            
+
             commitList.push(commitMaster);
-            
-            if(commitMaster.parents.length > 0) {
+
+            if (commitMaster.parents.length > 0) {
                 // Recursive function
                 await Promise.all(
                     commitMaster.parents.map(async (sha) => {
@@ -93,7 +129,7 @@ const getUserInfo = async (token, username) => {
             console.log(`ENDING REPO ${repo.name} for ${username}`)
             return repo
         }));
-        
+
         // run function to filter out repos with .ignore
         user.repo = repos.filter(repo => repo.ignore === false);
         // store repos information into redis for call back later
@@ -103,33 +139,7 @@ const getUserInfo = async (token, username) => {
     } catch (error) {
         throw error;
     }
-    
-};
 
-const createCommitList = async (token, commitItem, username, arr, projectStart) => {
-    try {
-        if(commitItem.url) {
-            const {data:newCommit} = await axios(`${commitItem.url}`, headers(token));
-            if(new Date(newCommit.commit.author.date) < new Date(projectStart)) return;
-            if(newCommit.author.login === username) {
-                arr.push(newCommit);
-            }
-            delete newCommit.author;
-            delete newCommit.owner;
-            // potentially loop through to delete patch files as they can be large
-            if(newCommit.parents && newCommit.parents.length > 0) {
-                await Promise.all(
-                    newCommit.parents.map(async (sha) => {
-                        await createCommitList(token, sha, username, arr, projectStart);
-                    })
-                ).catch(err => console.log(err))
-            }
-        } else {
-            return;
-        }
-    } catch (error) {
-        throw error;
-    }
 };
 
 // Server Calls
@@ -166,22 +176,22 @@ router.get('/getLimit', async (req, res, next) => {
 //     const student = {}
 //     // Have name be whater the body is for future
 //     student.name = 'tillyninjaspace';
-//     student.repository = await getUserInfo(token, ''); 
+//     student.repository = await getUserInfo(token, '');
 //     res.send({student})
 // });
 
 
 router.get('/getUsers', async (req, res) => {
-    const{token} = req.query;
+    const {token} = req.query;
     // Function below with mapping
     try {
         console.log(COHORT)
         const chunkList = chunkStudentList(COHORT, 2);
         let delayTime = 0;
-        const chunkedData = await Promise.all(chunkList.map(async (set) => {
-            return await Promise.all(set.map(async (username) => {
+        const chunkedData = await Promise.all(chunkList.map( set => {
+            return Promise.all(set.map(async (username) => {
                 delayTime += 50
-                const {data:{student}} = await timedPromise(delayTime, axios.get(`http://localhost:3000/api/github/getUsers/${username}`, {params: {token}}))
+                const {data: {student}} = await timedPromise(delayTime, axios.get(`http://localhost:3000/api/github/getUsers/${username}`, {params: {token}}))
                 return student;
             }))
             .catch(err => console.log(err));
@@ -213,7 +223,7 @@ router.get('/getUsers/:username', cache, async (req, res) => {
 });
 
 // Breaking down repo calls
-router.get('/getUsers/:username/repo', async (req, res) => {
+router.get('/getUsers/:username/repo', (req, res) => {
     const {username} = req.params;
     try {
         redisCLient.get(`${username}.repo`, (error, cachedData) => {
@@ -222,19 +232,17 @@ router.get('/getUsers/:username/repo', async (req, res) => {
                 console.log(`PULLING REDIS REPO for ${username}`);
                 const repo = JSON.parse(cachedData);
                 res.send({repo})
-            } else {
-                return;
             }
         })
     } catch (error) {
-        
+        throw error
     }
 })
 // Redis
 
 function cache(req, res, next) {
     const {username} = req.params
-    console.log("REDIS CONSOLE: ", username)
+    console.log('REDIS CONSOLE: ', username)
     redisCLient.get(username, (error, cachedData) => {
         if (error) throw error;
         if (cachedData !== null) {
@@ -245,19 +253,7 @@ function cache(req, res, next) {
             next()
         }
     })
-};
-
-
-
-const startGetUser = async (token, student) => {
-    console.log(`STARTING PROCESS: ${student}`)
-    const info = {};
-    info.name = student;
-    info.repository = await getUserInfo(token, student);
-    console.log(`ENDING PROCESS: ${student}`)
-    redisCLient.setex(info.name, 18000, JSON.stringify(info));
-    return info
-};
+}
 
 module.exports = {
     router

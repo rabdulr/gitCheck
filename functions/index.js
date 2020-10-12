@@ -1,23 +1,112 @@
+/* eslint-disable complexity */
 // Graphing functions
 const days = {
-    1 : 31,
-    2 : 28,
-    3 : 31,
-    4 : 30,
-    5 : 31,
-    6 : 30,
-    7 : 31,
-    8 : 31,
-    9 : 30,
-    10 : 31,
-    11 : 30,
-    12 : 31
+    1: 31,
+    2: 28,
+    3: 31,
+    4: 30,
+    5: 31,
+    6: 30,
+    7: 31,
+    8: 31,
+    9: 30,
+    10: 31,
+    11: 30,
+    12: 31
+};
+
+// Helper function for basicCommitLineData
+const createGraphData = (commitData, graphArr) => {
+    for (let i = 0; i < commitData.length ; i++) {
+        const {date, month, commitDay, utc} = commitData[i];
+        let newDataPoint = {};
+        newDataPoint.day = commitDay;
+        newDataPoint.commits = 1;
+
+        let nextIdx = i + 1;
+
+        while (commitData[nextIdx] && date === commitData[nextIdx].date) {
+            newDataPoint.commits++;
+            nextIdx++
+        }
+        graphArr.push(newDataPoint);
+        i = nextIdx - 1;
+
+        let nextDate = date - 1;
+        let nextMonth = month;
+
+        while ( commitData[nextIdx] && nextDate !== commitData[nextIdx].date){
+            if (nextDate <= 0) {
+                nextMonth = nextMonth - 1 ? nextMonth - 1 : 12;
+                nextDate = days[nextMonth]
+            }
+            let filler = {};
+            filler.day = `${nextMonth}/${nextDate}`;
+            filler.commits = 0;
+            graphArr.push(filler);
+            nextDate--;
+            if (nextDate <= 0) {
+                nextMonth = month - 1 ? month - 1 : 12;
+                nextDate = days[nextMonth]
+            }
+        }
+    }
+};
+
+// Helper function for projectAvg()
+const calcRepoData = (repoData) => {
+    const dictionary = {}
+    repoData.map(repo => {
+        repo.map(repoInfo => {
+            if (!(repoInfo.day in dictionary)) {
+                dictionary[repoInfo.day] = {
+                    commits: repoInfo.commits,
+                    users: 1,
+                };
+            } else {
+                dictionary[repoInfo.day].commits += repoInfo.commits;
+                dictionary[repoInfo.day].users++
+            }
+
+        })
+    })
+    return dictionary
+};
+
+const adjustDateGaps = (data) => {
+    const newArr = [];
+    for (let i = 0; i < data.length; i++) {
+        newArr.push(data[i]);
+        const [monthA, dateA] = data[i].day.split('/');
+        if (i + 1 < data.length && data[i + 1]) {
+            const [monthB, dateB] = data[i + 1].day.split('/');
+            let date = (dateA * 1) + 1;
+            let month = monthA * 1;
+
+            if (date > days[month]) {
+                month = month + 1 > 12 ? 1 : month + 1;
+                date = 1
+            }
+            while (date !== dateB*1) {
+                const gapFill = {};
+                gapFill.day = `${month}/${date}`;
+                gapFill.avgCommits = 0;
+                newArr.push(gapFill);
+                date++;
+                if (date > days[month]) {
+                    month = month + 1 > 12 ? 1 : month + 1;
+                    date = 1
+                }
+            }
+        }
+    }
+    return newArr
 };
 
 const basicCommitLineData = ({commit_counts}) => {
-    
-    if(commit_counts === 0) return;
-    
+
+    if (commit_counts === 0) return;
+
     const commitArr = commit_counts.map(commit => {
         let newDate = {};
         const utc = new Date(commit.commit.author.date);
@@ -34,46 +123,9 @@ const basicCommitLineData = ({commit_counts}) => {
     const graphArr = [];
     commitArr.sort((a, b) => new Date(b.utc) - new Date(a.utc));
     createGraphData(commitArr, graphArr);
-    
+
     return graphArr;
 }
-
-// Helper function for basicCommitLineData
-const createGraphData = (commitData, graphArr) => {
-    for(let i = 0; i < commitData.length ; i++) {
-        const {date, month, commitDay, utc} = commitData[i];
-        let newDataPoint = {};
-        newDataPoint.day = commitDay;
-        newDataPoint.commits = 1;
-        
-        let nextIdx = i + 1;
-        while(commitData[nextIdx] && date === commitData[nextIdx].date) { 
-            newDataPoint.commits++;
-            nextIdx++
-        }
-        graphArr.push(newDataPoint);
-        i = nextIdx - 1;
-        
-        let nextDate = date - 1;
-        let nextMonth = month;
-        
-        while( commitData[nextIdx] && nextDate !== commitData[nextIdx].date){
-            if(nextDate <= 0) {
-                nextMonth = nextMonth - 1 ? nextMonth - 1 : 12;
-                nextDate = days[nextMonth]
-            }
-            let filler = {};
-            filler.day = `${nextMonth}/${nextDate}`;
-            filler.commits = 0;
-            graphArr.push(filler);
-            nextDate--;
-            if(nextDate <= 0) {
-                nextMonth = month - 1 ? month - 1 : 12;
-                nextDate = days[nextMonth]
-            }
-        }
-    };
-};
 
 const projectAvg = (cohort, project) => {
     // we know what the project is
@@ -81,9 +133,9 @@ const projectAvg = (cohort, project) => {
     // match up with project
     const repos = [];
     cohort.map(student => {
-        const {repository:{repo}} = student
+        const {repository: {repo}} = student
         repo.map(repoInfo => {
-            if(repoInfo.name === project.name) repos.push(repoInfo);
+            if (repoInfo.name === project.name) repos.push(repoInfo);
         })
     })
     // get Array of all commits for each user
@@ -97,73 +149,23 @@ const projectAvg = (cohort, project) => {
     })
     compiledList.sort((a, b) => new Date(a.day) - new Date(b.day));
     const avgData = adjustDateGaps(compiledList);
-    return { project, avgData }
+    return { project, avgData, name: project.name }
 }
-
-const adjustDateGaps = (data) => {
-    const newArr = [];
-    for(let i = 0; i < data.length; i++) {
-        newArr.push(data[i]);
-        const [monthA, dateA] = data[i].day.split('/');
-        if(i + 1 < data.length && data[i + 1]) {
-            const [monthB, dateB] = data[i + 1].day.split('/');
-            let date = (dateA * 1) + 1;
-            let month = monthA * 1;
-            
-            if(date > days[month]) {
-                month = month + 1 > 12 ? 1 : month + 1;
-                date = 1
-            }
-            while(date !== dateB*1) {
-                const gapFill = {};
-                gapFill.day = `${month}/${date}`;
-                gapFill.avgCommits = 0;
-                newArr.push(gapFill);
-                date++;
-                if(date > days[month]) {
-                    month = month + 1 > 12 ? 1 : month + 1;
-                    date = 1
-                }
-            }
-        }
-    }
-    return newArr
-}
-
-// Helper function for projectAvg()
-const calcRepoData = (repoData) => {
-    const dictionary = {}
-    repoData.map(repo => {
-        repo.map(repoInfo => {
-            if(!(repoInfo.day in dictionary)) {
-                dictionary[repoInfo.day] = {
-                    commits:repoInfo.commits,
-                    users: 1,
-                };
-            } else {
-                dictionary[repoInfo.day].commits += repoInfo.commits;
-                dictionary[repoInfo.day].users++
-            }
-
-        })
-    })
-    return dictionary
-};
 
 // Match data with repo
 const findData = (dataList, projectName) => {
     const matchProj = dataList.filter(data => {
         return data.project.name === projectName
     });
-    if(!matchProj.length) return null;
+    if (!matchProj.length) return null;
     const {avgData} = matchProj[0];
     return avgData
 }
 
 // Combine data types
 const combineData = (userData, avgData) => {
-    
-    if(!userData || !avgData) return;
+
+    if (!userData || !avgData) return;
 
     const dictionary = {};
 
@@ -172,16 +174,16 @@ const combineData = (userData, avgData) => {
             avgCommits: avg.avgCommits
         };
     });
-    
+
     userData.map(user => {
-        if(!(user.day in dictionary)) {
+        if (!(user.day in dictionary)) {
             dictionary[user.day] = {
                 commits: user.commits
             }
         } else {
             dictionary[user.day].commits = user.commits;
         }
-        
+
     });
 
 
@@ -197,22 +199,22 @@ const combineData = (userData, avgData) => {
 // This will probably be removed if items are forked
 const splitHairs = (word, name) => {
     let dictionary = {};
-    if(project === name) return true;
-    const splitWord = project.split('')
+    if (word === name) return true;
+    const splitWord = word.split('')
     splitWord.forEach(letter => {
-      if(!(letter in dictionary)){
+      if (!(letter in dictionary)){
         dictionary[letter] = 1
       } else {
         dictionary[letter]++;
       }
     });
-  
+
     name.toLowerCase().split('').forEach(letter => {
-      if(dictionary[letter] > 0) {
+      if (dictionary[letter] > 0) {
         dictionary[letter]--
       }
-  
-      if(!dictionary[letter]) {
+
+      if (!dictionary[letter]) {
         delete dictionary[letter]
       }
     });

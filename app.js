@@ -17,4 +17,4 @@ server.use('/api/github', api.gitRouter.router)
 
 module.exports = {
     server
-};
+}

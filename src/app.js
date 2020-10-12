@@ -33,25 +33,25 @@ const App = () => {
         // Come back later once functions work
         const query = window.location.search.substring(1);
 
-        if(!userLogin && query) {
-            
+        if (!userLogin && query) {
+
             const token = query.split('access_token=')[1];
             const tokenStorage = localStorage.getItem('token');
-    
-            if(tokenStorage) {
+
+            if (tokenStorage) {
                 setToken(tokenStorage);
-            };
-    
-            if(token) {
+            }
+
+            if (token) {
                 setToken(token);
                 localStorage.setItem('token', token);
-            };
+            }
 
             setUserLogin(true);
-        }  
+        }
         getStudents();
     }, [])
-    
+
     const gitHubLogin = () => {
         window.location.replace('https://github.com/login/oauth/authorize?client_id=2d9066f1cc065f4ad732&scope=repo,user&redirect_uri=http://localhost:3000/api/github/callback')
     }
@@ -79,13 +79,13 @@ const App = () => {
         try {
             const {data:{returnedAvgData, cohort}} = await axios.get('/api/github/getUsers', {params: {token}})
             console.log('FE COHORT: ', cohort)
-            if(!cohort) return;
+            if (!cohort) return;
             const studentNames = cohort.map(student => student.name)
             const cohortObj = [{
                 cohort: '2006',
                 value: {
                     students: studentNames,
-                    projects: [{"name": "UNIV_Phenomena_Starter", "date": "9/28/20"}, {"name": "UNIV_FitnessTrackr_Starter", "date": "10/5/20"}],
+                    projects: [{name: 'UNIV_Phenomena_Starter', date: '9/28/20'}, {name: 'UNIV_FitnessTrackr_Starter', date: '10/5/20'}],
                     cohortData: cohort
                 }
             }];
@@ -99,14 +99,14 @@ const App = () => {
 
     const getLimit = async () => {
         try {
-            const {data:limit} = await axios.get('/api/github/getLimit', {params: {token}})
+            const {data: limit} = await axios.get('/api/github/getLimit', {params: {token}})
             setLimits(limit);
         } catch (error) {
             throw error;
         }
     }
 
-    return(
+    return (
         <div>
             <Container fluid>
                 <Row>
@@ -115,13 +115,13 @@ const App = () => {
                     </Col>
                         <Nav>
                             {
-                                token ? 
+                                token ?
                                     <div>
                                         <button onClick={logOut}>Log Out</button>
                                         <button onClick={getStudent}>Get User</button>
                                         <button onClick={getStudents}>Get Students</button>
                                         <button onClick={getLimit}>Get Limits</button>
-                                    </div> : 
+                                    </div> :
                                     <div>
                                         <button onClick={gitHubLogin}>GitHub Login</button>
                                     </div>
@@ -135,27 +135,6 @@ const App = () => {
                 </Row>
             </Container>
             <Container fluid>
-                <Row>
-                    <Col>
-                        <h3>Data</h3>
-                    </Col>
-                    </Row>
-                    <Row className="justify-content-center">
-                            {
-                                avgData.length > 0 ? 
-                                <div>
-                                    <LineChart width={900} height={300} data={avgData[0].avgData} margin={{top: 5, right: 0, bottom: 5, left: 0}}>
-                                        <CartesianGrid stroke="#ccc" strokeDasharray="5 5" />
-                                        <XAxis dataKey="day" />
-                                        <YAxis domain={[0, 'auto']}/>
-                                        <Legend verticalAlign="top" height={10} />
-                                        <Line type="monotone" dataKey="avgCommits" stroke="#82ca9d"/>
-                                        <Tooltip />
-                                    </LineChart>
-                                </div>
-                                : <Spinner animation="border" />
-                            }
-                    </Row>
                     {/* <Row>
                         {
                             allCohorts ?
@@ -165,7 +144,7 @@ const App = () => {
                     </Row> */}
             </Container>
             <Container fluid>
-                <Select options={allCohorts} onChange={(values) => setCohortClass(values[0].value)} labelField={"cohort"} valueField={"value"}/>
+                <Select options={allCohorts} onChange={(values) => setCohortClass(values[0].value)} labelField={'cohort'} valueField={'value'}/>
                 {
                     cohortClass ? <ClassView cohort={cohortClass} avgData={avgData} /> : <div></div>
                 }

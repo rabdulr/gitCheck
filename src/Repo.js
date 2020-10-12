@@ -13,38 +13,38 @@ const Repos = ({project, idx, avgData}) => {
     const [combinedData, setCombinedData] = useState(combineData(data, classData));
     const [open, setOpen] = useState(false);
     const {commit_counts} = project;
-    
+
     useEffect(() => {
-        if(project && data.length === 0) {
+        if (project && data.length === 0) {
             setData(basicCommitLineData(project));
         }
     }, [project]);
 
     useEffect(() => {
-        if(project && avgData && !classData) {
+        if (project && avgData && !classData) {
             setClassData(findData(avgData, project.name))
         }
     }, [avgData]);
-    
+
     useEffect(() => {
-        if(data && classData){
+        if (data && classData){
             setCombinedData(combineData(data, classData));
         }
-    },[classData, data])
+    }, [classData, data])
 
     return (
         <div key={idx}>
             <li><h4>Project Name: {project.name}</h4></li>
             {
-                data.length > 0 ? 
+                data.length > 0 ?
                 <div>
                     <LineChart width={900} height={300} data={combinedData || data} margin={{top: 5, right: 20, bottom: 5, left: 0}}>
                         <CartesianGrid stroke="#ccc" strokeDasharray="5 5" />
                         <XAxis dataKey="day" />
-                        <YAxis domain={[0, 'dataMax + 1']}/>
+                        <YAxis domain={[0, 'dataMax + 1']} />
                         <Legend verticalAlign="top" height={10} />
                         <Line type="monotone" dataKey="avgCommits" stroke="#82ca9d" />
-                        <Line type="monotone" dataKey="commits" stroke="#8884d8" strokeWidth="2"  dot={{ strokeWidth: 3 }}/>
+                        <Line type="monotone" dataKey="commits" stroke="#8884d8" strokeWidth="2"  dot={{ strokeWidth: 3 }} />
                         <Tooltip />
                     </LineChart>
                 </div>
@@ -60,8 +60,8 @@ const Repos = ({project, idx, avgData}) => {
                     <ul>
                     {
                         commit_counts.map((commit, idx) => {
-                            if(!commit.files) return;
-                            return ( 
+                            if (!commit.files) return;
+                            return (
                                 <div key={Math.random() + idx}>
                                     <Project commit={commit} />
                                 </div>)

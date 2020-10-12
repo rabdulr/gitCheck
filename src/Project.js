@@ -35,4 +35,4 @@ const Project = ({commit}) => {
     )
 }
 
-export default Project;
+export default Project
