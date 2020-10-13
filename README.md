@@ -15,13 +15,13 @@ This project is still a work in progress and has not yet been deployed.
 ## Built With
 
 This is a React project utilizing many different components.
-* [React] (https://reactjs.org)
-* [React-Router] (https://reactrouter.com)
-* [React-Bootstrap] (https://react-bootstrap.netlify.app)
-* [Express] (http://expressjs.com)
-* [Node] (https://nodejs.org/en/)
-* [Redis] (https://redis.io)
-* [React-Dropdown-Select] (https://sanusart.github.io/react-dropdown-select/)
+* [React](https://reactjs.org)
+* [React-Router](https://reactrouter.com)
+* [React-Bootstrap](https://react-bootstrap.netlify.app)
+* [Express](http://expressjs.com)
+* [Node](https://nodejs.org/en/)
+* [Redis](https://redis.io)
+* [React-Dropdown-Select](https://sanusart.github.io/react-dropdown-select/)
 
 ## Getting Started
 
