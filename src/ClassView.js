@@ -1,14 +1,4 @@
 import React, {useState, useEffect} from 'react';
-import Row from 'react-bootstrap/Row';
-import Col from 'react-bootstrap/Col';
-import Card from 'react-bootstrap/Card';
-
-import { LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip, Legend} from 'recharts';
-import Select from 'react-dropdown-select';
-
-import StudentCard from './StudentCard';
-import Spinner from 'react-bootstrap/Spinner';
-import Student from './Student';
 import Nav from 'react-bootstrap/Nav';
 import {
     BrowserRouter as Router,
@@ -18,15 +8,17 @@ import {
   } from 'react-router-dom';
 import ClassData from './ClassData';
 import ClassStudentsView from './ClassStudentsView';
-import ClassStudentView from './ClassStudentsView';
+import CreateCohort from './CreateCohort';
 
 
-const ClassView = ({cohort, avgData }) => {    
-    const {cohortData} = cohort;
+const ClassView = ({cohort, allCohorts, setAllCohorts }) => {
+    console.log('classview cohort: ', cohort)
+    const name = cohort.cohort;
+    const {value:{cohortData, cohortAvg}} = cohort
     const [error, setError] = useState('');
 
     useEffect(() => {
-        if (cohortData.length === 0 || avgData.length === 0) {
+        if (cohortData.length === 0 || cohortAvg.length === 0) {
             setError('There is no data to go over!')
         }
     }, []);
@@ -37,20 +29,25 @@ const ClassView = ({cohort, avgData }) => {
                 error
             }
             <Router>
-                <h3>{cohort.name}</h3>
-                <Nav variants="tabs" defaultActiveKey="/">
+                <Nav variants="tabs" defaultActiveKey="/classData">
                     <Nav.Item>
                         <Link to={`/classData`} className="nav-link">Class Data</Link>
                     </Nav.Item>
                     <Nav.Item>
                         <Link to={`/studentList`} className="nav-link">Student List</Link>
                     </Nav.Item>
+                    <Nav.Item>
+                        <Link to={`/editCohort`} className="nav-link">Edit Cohort</Link>
+                    </Nav.Item>
                 </Nav>
                 <Switch>
-                    <Route  path="/classData" render={(props) => <ClassData {...props} avgData={avgData} />} />
+                    <Route  path="/classData" render={(props) => <ClassData {...props} avgData={cohortAvg} />} />
                 </Switch>
                 <Switch>
-                    <Route  path="/studentList" render={(props) => <ClassStudentsView {...props} avgData={avgData} cohortData={cohortData} />} />
+                    <Route  path="/studentList" render={(props) => <ClassStudentsView {...props} avgData={cohortAvg} cohortData={cohortData} />} />
+                </Switch>
+                <Switch>
+                    <Route  path="/editCohort" render={(props) => <CreateCohort {...props} allCohorts={allCohorts} setAllCohorts={setAllCohorts} cohortClass={cohort} />} />
                 </Switch>
             </Router>
         </div>

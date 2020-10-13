@@ -20,7 +20,7 @@ const Student = ({student, avgData}) => {
                     <ListGroup className="list-group-flush">
                         <ListGroupItem>Last Updated: {repository.updated_at}</ListGroupItem>
                         <ListGroupItem onClick={() => setOpen(!open)}>FSA Projects: {repo.length}</ListGroupItem>
-                        <Collapse in={open}>
+                        {/* <Collapse in={open}> */}
                             <ul>
                                 {
                                     repo.map((project, idx) => {
@@ -32,7 +32,7 @@ const Student = ({student, avgData}) => {
                                     })
                                 }
                             </ul>
-                        </Collapse>
+                        {/* </Collapse> */}
                     </ListGroup>
                 </Card.Body>
             </Card>

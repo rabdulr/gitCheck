@@ -14,7 +14,6 @@ import Button from 'react-bootstrap/Button';
 
 import Student from './Student';
 import StudentCard from './StudentCard';
-import Cohort from './Cohort';
 import ClassView from './ClassView';
 import CreateCohort from './CreateCohort';
 
@@ -137,22 +136,16 @@ const App = () => {
                 </Row>
             </Container>
             <Container fluid>
-                <Select options={allCohorts} onChange={(values) => setCohortClass(values[0].value)} labelField={'cohort'} valueField={'value'}/>
+                <Col>
+                    <Select options={allCohorts} onChange={(values) => setCohortClass(values[0])} labelField={'cohort'} valueField={'value'}/>
+                </Col>
                 {
-                    cohortClass ? <ClassView cohort={cohortClass} avgData={cohortClass.cohortAvg} /> : <div></div>
+                    cohortClass ? <ClassView cohort={cohortClass} allCohorts={allCohorts} setAllCohorts={setAllCohorts} />
+                    : <div></div>
                 }
             </Container>
-            <Container fluid>
-                <CreateCohort allCohorts={allCohorts} setAllCohorts={setAllCohorts} />
-            </Container>
             {/* <Container fluid>
-                <Row>
-                    {
-                        allCohorts ?
-                            <Cohort cohort={allCohorts} />
-                            : <h3>No Data</h3>
-                    }
-                </Row>
+                <CreateCohort allCohorts={allCohorts} setAllCohorts={setAllCohorts} />
             </Container> */}
         </div>
     )

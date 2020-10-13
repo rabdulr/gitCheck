@@ -1,7 +1,6 @@
 import React from 'react';
-import Card from 'react-bootstrap/Card';
 
-const StudentCard = ({student, avgData}) => {
+const StudentCard = ({student}) => {
     const {repository, name} = student;
     return (
         <div>

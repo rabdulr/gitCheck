@@ -7,14 +7,29 @@ import InputGroup from 'react-bootstrap/InputGroup';
 import Form from 'react-bootstrap/Form';
 import Button from 'react-bootstrap/Button';
 import Nav from 'react-bootstrap/Nav';
+import {Link} from "react-router-dom";
 
-const CreateCohort = ({allCohorts, setAllCohorts}) => {
-
+const CreateCohort = ({allCohorts, setAllCohorts, cohortClass}) => {
+    console.log('cohort: ', cohortClass);
     const [cohortName, setCohortName] = useState('');
     const [studentListArr, setStudentListArr] = useState([]);
     const [projectList, setProjectList] = useState([]);
     const [projectName, setProjectName] = useState('');
     const [dueDate, setDueDate] = useState('');
+
+    useEffect(() => {
+        if (cohortClass) {
+            const name = cohortClass.cohort
+            const {value: {projects, students}} = cohortClass;
+            const newList = students.map(student => {
+                return {value: student, label: student}
+            });
+            console.log('students: ', newList)
+            setStudentListArr(newList)
+            setCohortName(name);
+            setProjectList(projects);
+        }
+    }, [])
 
     const addProject = () => {
         const newProject = {
@@ -24,6 +39,11 @@ const CreateCohort = ({allCohorts, setAllCohorts}) => {
         setProjectList([...projectList, newProject]);
         setProjectName('');
         setDueDate('');
+    };
+
+    const removeProject = (removedIdx) => {
+        const updateList = projectList.filter((_, idx) => idx !== removedIdx);
+        setProjectList(updateList);
     }
 
     const createCohort = (ev) => {
@@ -50,7 +70,7 @@ const CreateCohort = ({allCohorts, setAllCohorts}) => {
             <Row>
                 <Card style={{width: '100%'}}>
                     <Card.Body>
-                        <Card.Title>Add New Cohort</Card.Title>
+                        <Card.Title>{cohortClass ? 'Update Cohort' : 'Add New Cohort'}</Card.Title>
                         <Card.Body>
                             <Form>
                                 <Form.Group as={Row} controlId='formCohorttName'>
@@ -73,18 +93,20 @@ const CreateCohort = ({allCohorts, setAllCohorts}) => {
                                     </Col>
                                 </Form.Group>
                                 <Row style={{display: 'flex', justifyContent: 'flex-end'}}>
+                                    <Button variant="primary" onClick={addProject}>Add Project</Button>
+                                </Row>
+                                <Row>
                                     <Col>
                                         {
                                         projectList.length > 0 ?
-                                            projectList.map(project => {
+                                            projectList.map((project, idx) => {
                                                 return (
                                                 <li key={project.name + project.date}>
-                                                    {project.name}, {project.date}
+                                                    Project: {project.name}, Start Date: {project.date} <Button variant="danger" onClick={() => removeProject(idx)}>-</Button>
                                                 </li>
                                             )}) : <div>No projects set</div>
                                         }
                                     </Col>
-                                    <Button variant="primary" onClick={addProject}>Add Project</Button>
                                 </Row>
                                 <hr />
                                 <Form.Group as={Row} controlId='formStudenList'>
@@ -95,14 +117,17 @@ const CreateCohort = ({allCohorts, setAllCohorts}) => {
                                         create
                                         options={studentListArr}
                                         onCreateNew={item => setStudentListArr([...studentListArr, item])}
-                                        values={[]}
+                                        values={studentListArr}
                                         backspaceDelete={true}
                                         onChange={values => setStudentListArr(values)}
                                         placeholder="Add GitHub Usernames"
                                         style={{width: '100%'}} />
                                     </Col>
                                 </Form.Group>
-                                <Button variant="primary" onClick={ev => createCohort(ev)}>Create Cohort</Button>
+                                <Button variant="primary" onClick={ev => createCohort(ev)}>{cohortClass ? `Update Cohort` : `Create Cohort`}</Button>
+                                {
+                                    cohortClass ? <Link to="/classData"><Button variant="primary">Cancel</Button></Link> : <Link to="/"><Button variant="primary">Cancel</Button></Link>
+                                }
                             </Form>
                         </Card.Body>
                     </Card.Body>

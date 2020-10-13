@@ -8,7 +8,7 @@ import Student from './Student';
 import StudentCard from './StudentCard'
 
 const ClassStudentView = ({cohortData, avgData}) => {
-    const [studentInfo, setStudentInfo] = useState();
+    const [studentInfo, setStudentInfo] = useState(cohortData[0]);
     
     return (
         <Row style={{marginTop: '0'}}>
@@ -26,7 +26,7 @@ const ClassStudentView = ({cohortData, avgData}) => {
                 </Scrollbars>
             </Col>
             <Col style={{paddingRight: '0'}}>
-                <Row>
+                <Row style={{width: '100%'}}>
                     {
                         studentInfo ?
                             <Student student={studentInfo} avgData={avgData} />
