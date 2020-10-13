@@ -9,6 +9,7 @@ import Nav from 'react-bootstrap/Nav';
 import Card from 'react-bootstrap/Card';
 import Select from 'react-dropdown-select';
 import Spinner from 'react-bootstrap/Spinner';
+import Button from 'react-bootstrap/Button';
 
 
 import Student from './Student';
@@ -91,7 +92,7 @@ const App = () => {
                 }
             }];
             setAllCohorts(cohortObj)
-            setCohort(cohort);
+            // setCohort(cohort);
             // setAvgData(returnedAvgData)
         } catch (error) {
             throw error;
@@ -118,13 +119,13 @@ const App = () => {
                             {
                                 token ?
                                     <div>
-                                        <button type="button" onClick={logOut}>Log Out</button>
-                                        <button type="button" onClick={getStudent}>Get User</button>
-                                        <button type="button" onClick={getStudents}>Get Students</button>
-                                        <button type="button" onClick={getLimit}>Get Limits</button>
+                                        <Button variant="primary" onClick={logOut}>Log Out</Button>
+                                        {/* <Button variant="primary" onClick={getStudent}>Get User</Button> */}
+                                        {/* <Button variant="primary" onClick={getStudents}>Get Students</Button> */}
+                                        {/* <Button variant="primary" onClick={getLimit}>Get Limits</Button> */}
                                     </div> :
                                     <div>
-                                        <button type="button" onClick={gitHubLogin}>GitHub Login</button>
+                                        <Button variant="primary" onClick={gitHubLogin}>GitHub Login</Button>
                                     </div>
                             }
                         </Nav>
@@ -136,7 +137,7 @@ const App = () => {
                 </Row>
             </Container>
             <Container fluid>
-                <Select options={allCohorts} onChange={(values) => {console.log('values ', values); setCohortClass(values[0].value)}} labelField={'cohort'} valueField={'value'}/>
+                <Select options={allCohorts} onChange={(values) => setCohortClass(values[0].value)} labelField={'cohort'} valueField={'value'}/>
                 {
                     cohortClass ? <ClassView cohort={cohortClass} avgData={cohortClass.cohortAvg} /> : <div></div>
                 }

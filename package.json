@@ -26,6 +26,7 @@
     "react-dom": "^16.13.1",
     "react-dropdown-select": "^4.5.2",
     "react-json-view": "^1.19.1",
+    "react-router-dom": "^5.2.0",
     "recharts": "^1.8.5",
     "redis": "^3.0.2"
   },

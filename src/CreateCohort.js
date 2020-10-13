@@ -2,6 +2,11 @@ import React, {useState, useEffect} from 'react';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import Select from 'react-dropdown-select';
+import Card from 'react-bootstrap/Card';
+import InputGroup from 'react-bootstrap/InputGroup';
+import Form from 'react-bootstrap/Form';
+import Button from 'react-bootstrap/Button';
+import Nav from 'react-bootstrap/Nav';
 
 const CreateCohort = ({allCohorts, setAllCohorts}) => {
 
@@ -10,10 +15,6 @@ const CreateCohort = ({allCohorts, setAllCohorts}) => {
     const [projectList, setProjectList] = useState([]);
     const [projectName, setProjectName] = useState('');
     const [dueDate, setDueDate] = useState('');
-
-    const onSubmit = (ev) => {
-        ev.preventDefault();
-    };
 
     const addProject = () => {
         const newProject = {
@@ -25,65 +26,87 @@ const CreateCohort = ({allCohorts, setAllCohorts}) => {
         setDueDate('');
     }
 
-    const createCohort = () => {
+    const createCohort = (ev) => {
+        ev.preventDefault();
         const students = studentListArr.map(student => student.value);
         const value = {
             students,
             projects: projectList,
-            cohortData: []
+            cohortData: [],
+            cohortAvg: []
         };
         const newCohort = {
             cohort: cohortName,
             value
         };
         setAllCohorts([...allCohorts, newCohort]);
+        setCohortName('')
+        setStudentListArr([]);
+        setProjectList([]);
     };
 
     return (
         <div>
             <Row>
-                <label>
-                    Cohort Name:
-                    <input type="text" placeholder="Cohort Name" value={cohortName} onChange={ev => setCohortName(ev.target.value)}/>
-                </label>
-            </Row>
-            <Row>
-                <Select
-                    multi
-                    create
-                    options={studentListArr}
-                    onCreateNew={item => setStudentListArr([...studentListArr, item])}
-                    values={[]}
-                    backspaceDelete={true}
-                    onChange={values => setStudentListArr(values)}
-                    placeholder="Add GitHub Usernames" 
-                    style={{width: '100%'}} />
-            </Row>
-            <Row>
-                <h3>Add Project</h3>
-                <label>
-                    Project Name:
-                    <input type='text' placeholder='Project Name' value={projectName} onChange={ev => setProjectName(ev.target.value)} />
-                </label>
-                <label>
-                    Project Due Date:
-                    <input type='text' placeholder='1/1/20' value={dueDate} onChange={ev => setDueDate(ev.target.value)} />
-                </label>
-                <button type="button" onClick={addProject}>Add Project</button>
-                <h3>Project List</h3>
-                <ul>
-                    {
-                        projectList.length > 0 ? 
-                            projectList.map(project => {return (
-                                <li key={project.name + project.date}>
-                                    {project.name}, {project.date}
-                                </li>
-                            )}) : <div>No projects set</div>
-                    }
-                </ul>
-            </Row>
-            <Row>
-                <button type="button" onClick={createCohort}>Create Cohort</button>
+                <Card style={{width: '100%'}}>
+                    <Card.Body>
+                        <Card.Title>Add New Cohort</Card.Title>
+                        <Card.Body>
+                            <Form>
+                                <Form.Group as={Row} controlId='formCohorttName'>
+                                    <Form.Label column>Cohort name</Form.Label>
+                                    <Col sm="10">
+                                        <Form.Control type="text" placeholder="Cohort Name" value={cohortName} onChange={ev => setCohortName(ev.target.value)} />
+                                    </Col>
+                                </Form.Group>
+                                <hr />
+                                <Form.Group as={Row} controlId='formProject'>
+                                    <Form.Label column>Project name</Form.Label>
+                                    <Col sm="10">
+                                        <Form.Control type="text" placeholder="Project Name" value={projectName} onChange={ev => setProjectName(ev.target.value)} />
+                                    </Col>
+                                </Form.Group>
+                                <Form.Group as={Row} controlId='formProjectDate'>
+                                    <Form.Label column>Project due date</Form.Label>
+                                    <Col sm="10">
+                                        <Form.Control type='text' placeholder='1/1/20' value={dueDate} onChange={ev => setDueDate(ev.target.value)} />
+                                    </Col>
+                                </Form.Group>
+                                <Row style={{display: 'flex', justifyContent: 'flex-end'}}>
+                                    <Col>
+                                        {
+                                        projectList.length > 0 ?
+                                            projectList.map(project => {
+                                                return (
+                                                <li key={project.name + project.date}>
+                                                    {project.name}, {project.date}
+                                                </li>
+                                            )}) : <div>No projects set</div>
+                                        }
+                                    </Col>
+                                    <Button variant="primary" onClick={addProject}>Add Project</Button>
+                                </Row>
+                                <hr />
+                                <Form.Group as={Row} controlId='formStudenList'>
+                                    <Form.Label column>Student List</Form.Label>
+                                    <Col sm="10">
+                                    <Select
+                                        multi
+                                        create
+                                        options={studentListArr}
+                                        onCreateNew={item => setStudentListArr([...studentListArr, item])}
+                                        values={[]}
+                                        backspaceDelete={true}
+                                        onChange={values => setStudentListArr(values)}
+                                        placeholder="Add GitHub Usernames"
+                                        style={{width: '100%'}} />
+                                    </Col>
+                                </Form.Group>
+                                <Button variant="primary" onClick={ev => createCohort(ev)}>Create Cohort</Button>
+                            </Form>
+                        </Card.Body>
+                    </Card.Body>
+                </Card>
             </Row>
         </div>
     )
