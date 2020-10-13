@@ -8,7 +8,7 @@ import Student from './Student';
 import StudentCard from './StudentCard'
 
 const ClassStudentView = ({cohortData, avgData}) => {
-    const [studentInfo, setStudentInfo] = useState(cohortData[0]);
+    const [studentInfo, setStudentInfo] = useState();
     
     return (
         <Row style={{marginTop: '0'}}>

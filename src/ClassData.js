@@ -11,7 +11,6 @@ const ClassData = ({avgData}) => {
     return (
         <Row>
             <Col>
-                <h3>Class Data</h3>
                 {
                     avgData.map(data => {
                         console.log('data: ', data)

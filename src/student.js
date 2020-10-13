@@ -21,17 +21,15 @@ const Student = ({student, avgData}) => {
                         <ListGroupItem>Last Updated: {repository.updated_at}</ListGroupItem>
                         <ListGroupItem onClick={() => setOpen(!open)}>FSA Projects: {repo.length}</ListGroupItem>
                         {/* <Collapse in={open}> */}
-                            <ul>
-                                {
-                                    repo.map((project, idx) => {
-                                        return (
-                                            <div key={Math.random() + idx}>
-                                                <Repo project={project} idx={idx} avgData={avgData} />
-                                            </div>
-                                        )
-                                    })
-                                }
-                            </ul>
+                        {
+                            repo.map((project, idx) => {
+                                return (
+                                    <div key={Math.random() + idx}>
+                                        <Repo project={project} idx={idx} avgData={avgData} />
+                                    </div>
+                                )
+                            })
+                        }
                         {/* </Collapse> */}
                     </ListGroup>
                 </Card.Body>
