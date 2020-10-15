@@ -66,14 +66,14 @@ const getLimit = async (token) => {
     return limit;
 };
 
-const getUserInfo = async (token, username) => {
+const getUserInfo = async (token, username, allProjects) => {
     try {
         console.log(`GETTING info for ${username}`)
         const URL = `https://api.github.com/users/${username}`;
         const PRIVATE_URL = `https://api.github.com/repos/${username}`
 
         const {data: user} = await axios(`${URL}`, headers);
-        const repos = await Promise.all(projects.map(async project => {
+        const repos = await Promise.all(allProjects.map(async project => {
             // return project;
             const {data} = await axios(`${PRIVATE_URL}/${project.name}`, headers(token));
             data.projectStart = new Date(project.date)
@@ -211,11 +211,44 @@ router.get('/getUsers', async (req, res) => {
     }
 });
 
+router.post('/updateList', async (req, res) => {
+    const {usersList, projectList} = req.body;
+    console.log('req body: ', req.body)
+    const {token} = req.query;
+    console.log('students & tokens, projects: ', usersList, token, projectList);
+    try {
+        console.log(COHORT)
+        const chunkList = chunkStudentList(usersList, 2);
+        let delayTime = 0;
+        const chunkedData = await Promise.all(chunkList.map( set => {
+            return Promise.all(set.map(async (username) => {
+                delayTime += 50
+                const {data: {student}} = await timedPromise(delayTime, axios.get(`http://localhost:3000/api/github/getUsers/${username}`, {params: {token, projectList}}))
+                return student;
+            }))
+            .catch(err => console.log(err));
+        }));
+        const cohort = chunkedData.flat().filter(item => item !== undefined);
+        // Calculate AVG Data for each project
+        const returnedAvgData = projectList.map(project => projectAvg(cohort, project));
+        // const cohort = sorted.map(student => {
+        //     delete student.repository.repo;
+        //     return student
+        // });
+        console.log('avg Data: ', returnedAvgData);
+        console.log('Size of cohort file: ', sizeof(cohort))
+        res.send({cohort, returnedAvgData})
+    } catch (error) {
+        throw error;
+    }
+})
+
 router.get('/getUsers/:username', cache, async (req, res) => {
     const {username} = req.params;
-    const {token} = req.query;
+    const {token, projectList} = req.query;
+    const allProjects = projectList || projects
     try {
-        const student = await startGetUser(token, username);
+        const student = await startGetUser(token, username, allProjects);
         res.send({student})
     } catch (error) {
         throw error

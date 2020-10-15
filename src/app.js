@@ -10,11 +10,16 @@ import Card from 'react-bootstrap/Card';
 import Select from 'react-dropdown-select';
 import Spinner from 'react-bootstrap/Spinner';
 import Button from 'react-bootstrap/Button';
+import Tabs from 'react-bootstrap/Tabs';
+import Tab from 'react-bootstrap/Tab';
+import TabContainer from 'react-bootstrap/TabContainer'
 
 
 import Student from './Student';
 import StudentCard from './StudentCard';
 import ClassView from './ClassView';
+import ClassData from './ClassData';
+import ClassStudentsView from './ClassStudentsView';
 import CreateCohort from './CreateCohort';
 
 
@@ -24,11 +29,12 @@ const App = () => {
     const [student, setStudent] = useState(JSON.parse(window.localStorage.getItem('student')));
     // const [cohort, setCohort] = useState(JSON.parse(window.localStorage.getItem('cohort')));
     const [limits, setLimits] = useState({});
+    const [key, setKey] = useState('classData')
 
     const [allCohorts, setAllCohorts] = useState();
     const [cohortClass, setCohortClass] = useState();
 
-    useEffect(() =>{
+    useEffect(() => {
         // attempting to clear accesss_token from URL
         // Come back later once functions work
         const query = window.location.search.substring(1);
@@ -50,7 +56,10 @@ const App = () => {
             setUserLogin(true);
         }
         getStudents();
-    }, [])
+    }, []);
+
+    // useEffect(() => {
+    // }, [allCohorts])
 
     const gitHubLogin = () => {
         window.location.replace('https://github.com/login/oauth/authorize?client_id=2d9066f1cc065f4ad732&scope=repo,user&redirect_uri=http://localhost:3000/api/github/callback')
@@ -66,7 +75,7 @@ const App = () => {
     const getStudent = async () => {
         const user = localStorage.getItem('student');
         try {
-                const {data:{student}} = await axios.get('/api/github/getUser', {params: {token}})
+                const {data: {student}} = await axios.get('/api/github/getUser', {params: {token}})
                 setStudent(student);
                 // localStorage.setItem('student', JSON.stringify(student))
         } catch (error) {
@@ -77,11 +86,12 @@ const App = () => {
     const getStudents = async () => {
         // const users = localStorage.getItem('cohort');
         try {
-            const {data:{returnedAvgData, cohort}} = await axios.get('/api/github/getUsers', {params: {token}})
+            const {data: {returnedAvgData, cohort}} = await axios.get('/api/github/getUsers', {params: {token}})
             console.log('FE COHORT: ', cohort)
             if (!cohort) return;
             const studentNames = cohort.map(student => student.name)
             const cohortObj = [{
+                id: 1,
                 cohort: '2006',
                 value: {
                     students: studentNames,
@@ -97,6 +107,17 @@ const App = () => {
             throw error;
         }
     };
+
+    const updateList = async (usersList, projectList) => {
+        try {
+            console.log('hi!')
+            const {data: {returnedAvgData, cohort}} = await axios.post('/api/github/updateList', {usersList, projectList}, {params: {token}});
+            console.log('avg data sets: ', returnedAvgData, cohort)
+            return {returnedAvgData, cohort}
+        } catch (error) {
+            throw error
+        }
+    }
 
     const getLimit = async () => {
         try {
@@ -136,14 +157,42 @@ const App = () => {
                 </Row>
             </Container>
             <Container fluid>
-                <Col>
-                    <Select options={allCohorts} onChange={(values) => setCohortClass(values[0])} labelField={'cohort'} valueField={'value'}/>
-                </Col>
-                {
+                <Row>
+                    <Col>
+                        <Select options={allCohorts} onChange={(values) => setCohortClass(values[0])} labelField="cohort" valueField="value" />
+                    </Col>
+                </Row>
+                <Row>
+   
+                </Row>
+                {/* {
                     cohortClass ? <ClassView cohort={cohortClass} allCohorts={allCohorts} setAllCohorts={setAllCohorts} />
-                    : <div></div>
-                }
+                    : <div />
+                } */}
             </Container>
+            <Tabs defaultActiveKey="classData" id="data-navigation" activeKey={key} onSelect={k => setKey(k)}>
+                <Tab eventKey="classData" title="Class Data">
+                {
+                    cohortClass ?
+                        <ClassData avgData={cohortClass.value.cohortAvg} />
+                        : <div>Cohort Not Selected</div>
+                }
+                </Tab>
+                <Tab eventKey="classStudentsView" title="Students List">
+                {
+                    cohortClass ?
+                        <ClassStudentsView avgData={cohortClass.value.cohortAvg} cohortData={cohortClass.value.cohortData} />
+                        : <div>Cohort Not Selected</div>
+                }
+                </Tab>
+                <Tab eventKey="classEdit" title="Edit Class">
+                {
+                    cohortClass ?
+                        <CreateCohort allCohorts={allCohorts} setAllCohorts={setAllCohorts} cohortClass={cohortClass} setKey={setKey} updateList={updateList} setCohortClass={setCohortClass} />
+                        : <div>Cohort Not Selected</div>
+                }
+                </Tab>
+            </Tabs>
             {/* <Container fluid>
                 <CreateCohort allCohorts={allCohorts} setAllCohorts={setAllCohorts} />
             </Container> */}

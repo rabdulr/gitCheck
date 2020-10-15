@@ -12,9 +12,7 @@ import CreateCohort from './CreateCohort';
 
 
 const ClassView = ({cohort, allCohorts, setAllCohorts }) => {
-    console.log('classview cohort: ', cohort)
-    const name = cohort.cohort;
-    const {value:{cohortData, cohortAvg}} = cohort
+    const {value: {cohortData, cohortAvg}} = cohort
     const [error, setError] = useState('');
 
     useEffect(() => {
@@ -29,15 +27,15 @@ const ClassView = ({cohort, allCohorts, setAllCohorts }) => {
                 error
             }
             <Router>
-                <Nav variants="tabs" defaultActiveKey="/classData">
+                <Nav variant="tabs" defaultActiveKey="/classData">
                     <Nav.Item>
-                        <Link to={`/classData`} className="nav-link">Class Data</Link>
+                        <Nav.Link as={Link} to="/classData">Class Data</Nav.Link>
                     </Nav.Item>
                     <Nav.Item>
-                        <Link to={`/studentList`} className="nav-link">Student List</Link>
+                        <Nav.Link as={Link} to="/studentList">Student List</Nav.Link>
                     </Nav.Item>
                     <Nav.Item>
-                        <Link to={`/editCohort`} className="nav-link">Edit Cohort</Link>
+                        <Nav.Link as={Link} to="/editCohort">Edit Cohort</Nav.Link>
                     </Nav.Item>
                 </Nav>
                 <Switch>
