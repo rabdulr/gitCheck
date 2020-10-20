@@ -9,7 +9,7 @@ const REDIST_PORT = 6379;
 const redisCLient = redis.createClient();
 
 // Project List for testing
-const projects = JSON.parse(PROJECTS)
+const seedProjects = JSON.parse(PROJECTS)
 
 // Cohort information is currently hard coded
 // Will need to create a way to get from an array on Front End
@@ -30,6 +30,16 @@ const startGetUser = async (token, student) => {
     const info = {};
     info.name = student;
     info.repository = await getUserInfo(token, student);
+    console.log(`ENDING PROCESS: ${student}`)
+    redisCLient.setex(info.name, 18000, JSON.stringify(info));
+    return info
+};
+
+const startGetUserPost = async (token, student, projects) => {
+    console.log(`STARTING PROCESS: ${student}`)
+    const info = {};
+    info.name = student;
+    info.repository = await getUserInfoPost(token, student, projects);
     console.log(`ENDING PROCESS: ${student}`)
     redisCLient.setex(info.name, 18000, JSON.stringify(info));
     return info
@@ -67,6 +77,82 @@ const getLimit = async (token) => {
 };
 
 const getUserInfo = async (token, username) => {
+    try {
+        console.log(`GETTING info for ${username}`)
+        const URL = `https://api.github.com/users/${username}`;
+        const PRIVATE_URL = `https://api.github.com/repos/${username}`
+
+        const {data: user} = await axios(`${URL}`, headers);
+        const repos = await Promise.all(seedProjects.map(async project => {
+            // return project;
+            const {data} = await axios(`${PRIVATE_URL}/${project.name}`, headers(token));
+            data.projectStart = new Date(project.date)
+            return data
+        }));
+        await Promise.all(repos.map(async (repo) => {
+            // create a function in which we look at the name and cross check a list of repos of repos we are looking for
+            // If repo is not part of list, create a new key .ignore = true, return
+            // Repos are forks, therefore, no need to veriy - functionality will work until personal projects appear
+            // console.log('Repo name (lower case): ', repo.name.toLowerCase())
+            // repo.ignore = !checkRepoName(repo.name.toLowerCase());
+            // console.log('Repo ignore: ', repo.ignore)
+            // if(repo.ignore) return repo;
+            repo.ignore = false;
+
+            delete repo.owner;
+
+            const forkInsert = {}
+            const commit = {
+                name: 'fork',
+                author: {
+                    name: 'Fork',
+                    date: repo.created_at
+                }
+            };
+
+            forkInsert.commit = commit;
+
+            const commitList = [];
+            console.log(`STARTING REPO ${repo.name} for ${username}`)
+            const response = await axios(`${repo.url}/commits/master`, headers(token)).catch(err => err.response.status);
+            if (response === 409) {
+                repo.commit_counts = commitList;
+                return repo;
+            }
+            const {data: commitMaster} = response;
+            delete commitMaster.author;
+            delete commitMaster.owner;
+
+            commitList.push(commitMaster);
+
+            if (commitMaster.parents.length > 0) {
+                // Recursive function
+                await Promise.all(
+                    commitMaster.parents.map(async (sha) => {
+                            await createCommitList(token, sha, username, commitList, repo.projectStart)
+                    })
+                ).catch(err => console.log(err))
+            }
+            commitList.push(forkInsert);
+            repo.commit_counts = await commitList;
+            // acc.push(repo);
+            console.log(`ENDING REPO ${repo.name} for ${username}`)
+            return repo
+        }));
+
+        // run function to filter out repos with .ignore
+        user.repo = repos.filter(repo => repo.ignore === false);
+        // store repos information into redis for call back later
+        redisCLient.setex(`${username}.repo`, 18000, JSON.stringify(user.repo));
+        console.log(`FINISHED getting info for ${username}`)
+        return user;
+    } catch (error) {
+        throw error;
+    }
+
+};
+
+const getUserInfoPost = async (token, username, projects) => {
     try {
         console.log(`GETTING info for ${username}`)
         const URL = `https://api.github.com/users/${username}`;
@@ -192,7 +278,7 @@ router.post('/updateList', async (req, res) => {
         const chunkedData = await Promise.all(chunkList.map( set => {
             return Promise.all(set.map(async (username) => {
                 delayTime += 50
-                const {data: {student}} = await timedPromise(delayTime, axios.get(`http://localhost:3000/api/github/getUsers/${username}`, {params: {token, projectList}}))
+                const {data: {student}} = await timedPromise(delayTime, axios.post(`http://localhost:3000/api/github/getUsers/${username}`, {projectList}, {params: {token}}))
                 return student;
             }))
             .catch(err => console.log(err));
@@ -229,7 +315,7 @@ router.get('/getUsers', async (req, res) => {
         }));
         const cohort = chunkedData.flat().filter(item => item !== undefined);
         // Calculate AVG Data for each project
-        const returnedAvgData = projects.map(project => projectAvg(cohort, project));
+        const returnedAvgData = seedProjects.map(project => projectAvg(cohort, project));
         console.log('avg Data: ', returnedAvgData);
         console.log('Size of cohort file: ', sizeof(cohort))
         res.send({cohort, returnedAvgData})
@@ -243,6 +329,19 @@ router.get('/getUsers/:username', cache, async (req, res) => {
     const {token} = req.query;
     try {
         const student = await startGetUser(token, username);
+        res.send({student})
+    } catch (error) {
+        throw error
+    }
+});
+
+router.post('/getUsers/:username', cache, async (req, res) => {
+    const {username} = req.params;
+    const {token} = req.query;
+    const {projectList} = req.body
+    console.log('project list: ', projectList)
+    try {
+        const student = await startGetUserPost(token, username, projectList);
         res.send({student})
     } catch (error) {
         throw error

@@ -10,7 +10,7 @@ import Nav from 'react-bootstrap/Nav';
 import {Link} from "react-router-dom";
 
 const CreateCohort = ({allCohorts, setAllCohorts, cohortClass, updateList, setKey, setCohortClass}) => {
-    console.log('cohort: ', cohortClass);
+
     const [cohortName, setCohortName] = useState('');
     const [studentListArr, setStudentListArr] = useState([]);
     const [projectList, setProjectList] = useState([]);
@@ -24,7 +24,6 @@ const CreateCohort = ({allCohorts, setAllCohorts, cohortClass, updateList, setKe
             const newList = students.map(student => {
                 return {value: student, label: student}
             });
-            console.log('students: ', newList)
             setStudentListArr(newList)
             setCohortName(name);
             setProjectList(projects);
