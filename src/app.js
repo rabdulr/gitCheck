@@ -10,12 +10,17 @@ import Card from 'react-bootstrap/Card';
 import Select from 'react-dropdown-select';
 import Spinner from 'react-bootstrap/Spinner';
 import Button from 'react-bootstrap/Button';
+import Tabs from 'react-bootstrap/Tabs';
+import Tab from 'react-bootstrap/Tab';
+import TabContainer from 'react-bootstrap/TabContainer';
 
 
 import Student from './Student';
 import StudentCard from './StudentCard';
 import ClassView from './ClassView';
 import CreateCohort from './CreateCohort';
+import ClassData from './ClassData';
+import ClassStudentView from './ClassStudentsView';
 
 
 const App = () => {
@@ -24,6 +29,7 @@ const App = () => {
     const [student, setStudent] = useState(JSON.parse(window.localStorage.getItem('student')));
     // const [cohort, setCohort] = useState(JSON.parse(window.localStorage.getItem('cohort')));
     const [limits, setLimits] = useState({});
+    const [key, setKey] = useState('classData');
 
     const [allCohorts, setAllCohorts] = useState();
     const [cohortClass, setCohortClass] = useState();
@@ -98,6 +104,17 @@ const App = () => {
         }
     };
 
+    const updateList = async (usersList, projectList) => {
+        try {
+            console.log('hi!')
+            const {data: {returnedAvgData, cohort}} = await axios.post('/api/github/updateList', {usersList, projectList}, {params: {token}});
+            console.log('avg data sets: ', returnedAvgData, cohort)
+            return {returnedAvgData, cohort}
+        } catch (error) {
+            throw error
+        }
+    }
+
     const getLimit = async () => {
         try {
             const {data: limit} = await axios.get('/api/github/getLimit', {params: {token}})
@@ -139,11 +156,34 @@ const App = () => {
                 <Col>
                     <Select options={allCohorts} onChange={(values) => setCohortClass(values[0])} labelField={'cohort'} valueField={'value'}/>
                 </Col>
-                {
+                {/* {
                     cohortClass ? <ClassView cohort={cohortClass} allCohorts={allCohorts} setAllCohorts={setAllCohorts} />
                     : <div></div>
-                }
+                } */}
             </Container>
+            <Tabs defaultActiveKey="classData" id="data-navigation" activeKey={key} onSelect={k => setKey(k)}>
+                <Tab eventKey="classData" title="Class Data">
+                    {
+                        cohortClass ?
+                            <ClassData avgData={cohortClass.value.cohortAvg} />
+                            : <div>Cohort Not Selected</div>
+                    }
+                </Tab>
+                <Tab eventKey="ClassStudentsView" title="Student List">
+                    {
+                        cohortClass ?
+                            <ClassStudentView avgData={cohortClass.value.cohortAvg} cohortData={cohortClass.value.cohortData} />
+                            : <div>Cohort Not Selected</div>
+                    }
+                </Tab>
+                <Tab eventKey="classEdit" title="Edit Class">
+                    {
+                        cohortClass ?
+                            <CreateCohort allCohorts={allCohorts} setAllCohorts={setAllCohorts} cohortClass={cohortClass} setKey={setKey} updateList={updateList} setCohortClass={setCohortClass} />
+                            : <div>Cohort Not Selected</div>
+                    }
+                </Tab>
+            </Tabs>
             {/* <Container fluid>
                 <CreateCohort allCohorts={allCohorts} setAllCohorts={setAllCohorts} />
             </Container> */}

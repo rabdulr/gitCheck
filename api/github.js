@@ -180,6 +180,37 @@ router.get('/getLimit', async (req, res, next) => {
 //     res.send({student})
 // });
 
+router.post('/updateList', async (req, res) => {
+    const {usersList, projectList} = req.body;
+    console.log('req body: ', req.body)
+    const {token} = req.query;
+    console.log('students & tokens, projects: ', usersList, token, projectList);
+    try {
+        console.log(COHORT)
+        const chunkList = chunkStudentList(usersList, 2);
+        let delayTime = 0;
+        const chunkedData = await Promise.all(chunkList.map( set => {
+            return Promise.all(set.map(async (username) => {
+                delayTime += 50
+                const {data: {student}} = await timedPromise(delayTime, axios.get(`http://localhost:3000/api/github/getUsers/${username}`, {params: {token, projectList}}))
+                return student;
+            }))
+            .catch(err => console.log(err));
+        }));
+        const cohort = chunkedData.flat().filter(item => item !== undefined);
+        // Calculate AVG Data for each project
+        const returnedAvgData = projectList.map(project => projectAvg(cohort, project));
+        // const cohort = sorted.map(student => {
+        //     delete student.repository.repo;
+        //     return student
+        // });
+        console.log('avg Data: ', returnedAvgData);
+        console.log('Size of cohort file: ', sizeof(cohort))
+        res.send({cohort, returnedAvgData})
+    } catch (error) {
+        throw error;
+    }
+});
 
 router.get('/getUsers', async (req, res) => {
     const {token} = req.query;
@@ -199,10 +230,6 @@ router.get('/getUsers', async (req, res) => {
         const cohort = chunkedData.flat().filter(item => item !== undefined);
         // Calculate AVG Data for each project
         const returnedAvgData = projects.map(project => projectAvg(cohort, project));
-        // const cohort = sorted.map(student => {
-        //     delete student.repository.repo;
-        //     return student
-        // });
         console.log('avg Data: ', returnedAvgData);
         console.log('Size of cohort file: ', sizeof(cohort))
         res.send({cohort, returnedAvgData})
