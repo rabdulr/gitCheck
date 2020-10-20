@@ -3,9 +3,8 @@ const {STUDENT_LIST, CLIENT_ID, CLIENT_SECRET, PROJECTS} = process.env;
 const COHORT = JSON.parse(STUDENT_LIST);
 const {timedPromise, projectAvg, chunkStudentList} = require('../functions')
 const axios = require('axios');
-const redis = require('redis');
 const sizeof = require('object-sizeof')
-const REDIST_PORT = 6379;
+const redis = require('redis');
 const redisCLient = redis.createClient();
 
 // Project List for testing
@@ -65,6 +64,21 @@ const getLimit = async (token) => {
     const { data: limit } = await axios('https://api.github.com/rate_limit', headers(token));
     return limit;
 };
+
+const returnUserData = (chunkList, projectList, token) => {
+    try {
+        let delayTime = 0;
+        return Promise.all(chunkList.map(set => {
+            return Promise.all(set.map(async (username) => {
+                delayTime += 50
+                const {data: {student}} = await timedPromise(delayTime, axios.post(`http://localhost:3000/api/github/getUsers/${username}`, {projectList}, {params: {token}}))
+                return student;
+            }))
+        }))
+    } catch (error) {
+        return error
+    }
+}
 
 const getUserInfo = async (token, username, projects) => {
     try {
@@ -162,21 +176,6 @@ router.get('/getLimit', async (req, res, next) => {
         throw error;
     }
 });
-
-const returnUserData = async (chunkList, projectList, token) => {
-    try {
-        let delayTime = 0;
-        return Promise.all(chunkList.map(set => {
-            return Promise.all(set.map(async (username) => {
-                delayTime += 50
-                const {data: {student}} = await timedPromise(delayTime, axios.post(`http://localhost:3000/api/github/getUsers/${username}`, {projectList}, {params: {token}}))
-                return student;
-            }))
-        }))
-    } catch (error) {
-        return error
-    }
-}
 
 router.post('/updateList', async (req, res) => {
     const {usersList, projectList} = req.body;

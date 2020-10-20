@@ -1,23 +1,15 @@
 import React, {useState, useEffect} from 'react';
 import axios from 'axios';
-import ReactJson from 'react-json-view';
-import { LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip, Legend} from 'recharts';
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import Nav from 'react-bootstrap/Nav';
-import Card from 'react-bootstrap/Card';
 import Select from 'react-dropdown-select';
 import Spinner from 'react-bootstrap/Spinner';
 import Button from 'react-bootstrap/Button';
 import Tabs from 'react-bootstrap/Tabs';
 import Tab from 'react-bootstrap/Tab';
-import TabContainer from 'react-bootstrap/TabContainer';
 
-
-import Student from './Student';
-import StudentCard from './StudentCard';
-import ClassView from './ClassView';
 import CreateCohort from './CreateCohort';
 import ClassData from './ClassData';
 import ClassStudentView from './ClassStudentsView';

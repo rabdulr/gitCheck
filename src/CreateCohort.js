@@ -6,8 +6,6 @@ import Card from 'react-bootstrap/Card';
 import InputGroup from 'react-bootstrap/InputGroup';
 import Form from 'react-bootstrap/Form';
 import Button from 'react-bootstrap/Button';
-import Nav from 'react-bootstrap/Nav';
-import {Link} from "react-router-dom";
 
 const CreateCohort = ({allCohorts, setAllCohorts, cohortClass, updateList, setKey, setCohortClass}) => {
 
@@ -101,7 +99,7 @@ const CreateCohort = ({allCohorts, setAllCohorts, cohortClass, updateList, setKe
                                 <Form.Group as={Row} controlId='formProjectDate'>
                                     <Form.Label column>Project due date</Form.Label>
                                     <Col sm="10">
-                                        <Form.Control type='text' placeholder='1/1/20' value={dueDate} onChange={ev => setDueDate(ev.target.value)} />
+                                        <Form.Control type='text' placeholder='01/01/20' value={dueDate} onChange={ev => setDueDate(ev.target.value)} />
                                     </Col>
                                 </Form.Group>
                                 <Row style={{display: 'flex', justifyContent: 'flex-end'}}>
