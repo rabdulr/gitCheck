@@ -60,10 +60,11 @@ const CreateCohort = ({allCohorts, setAllCohorts, cohortClass, updateList, setKe
             // Need to send update of list/items that were updated to DB
             // Run an update on the items
             const {returnedAvgData, cohort} = await updateList(students, projectList);
+            newCohort.id = cohortClass.id
             newCohort.value.cohortData = cohort;
             newCohort.value.cohortAvg = returnedAvgData;
             console.log('new Cohort: ', newCohort)
-            setAllCohorts(allCohorts.map(cohort => cohort.cohort === newCohort.cohort ? newCohort : cohort));
+            setAllCohorts(allCohorts.map(cohort => cohort.id === newCohort.id ? newCohort : cohort));
             setCohortClass(newCohort)
             setKey('classData');
         } else {
@@ -76,7 +77,6 @@ const CreateCohort = ({allCohorts, setAllCohorts, cohortClass, updateList, setKe
     };
 
     return (
-        <div>
             <Row>
                 <Card style={{width: '100%'}}>
                     <Card.Body>
@@ -143,7 +143,6 @@ const CreateCohort = ({allCohorts, setAllCohorts, cohortClass, updateList, setKe
                     </Card.Body>
                 </Card>
             </Row>
-        </div>
     )
 }
 

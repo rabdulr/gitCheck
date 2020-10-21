@@ -10,6 +10,7 @@ const Student = ({student, avgData}) => {
 
     const {repository, name} = student;
     const {repo} = repository;
+    repository.updated_at = new Date(repository.updated_at)
 
     return (
         <div>
@@ -18,8 +19,6 @@ const Student = ({student, avgData}) => {
                     <Card.Title>{repository.name || repository.login}</Card.Title>
                     <Card.Subtitle className="mb-2 text-muted">{repository.login}</Card.Subtitle>
                     <ListGroup className="list-group-flush">
-                        <ListGroupItem>Last Updated: {repository.updated_at}</ListGroupItem>
-                        <ListGroupItem onClick={() => setOpen(!open)}>FSA Projects: {repo.length}</ListGroupItem>
                         {/* <Collapse in={open}> */}
                         {
                             repo.map((project, idx) => {

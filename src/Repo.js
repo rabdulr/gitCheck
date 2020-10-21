@@ -34,14 +34,15 @@ const Repos = ({project, idx, avgData}) => {
 
     return (
         <div key={idx}>
-            <h4>Project Name: {project.name}</h4>
+            <h4>Project: {project.name}</h4>
             {
                 data.length > 0 ?
                 <>
+                    <h6>Last Updated: {new Date(project.updated_at).toLocaleDateString()}</h6>
                     <LineChart width={900} height={300} data={combinedData || data} margin={{top: 5, right: 20, bottom: 5, left: 0}}>
                         <CartesianGrid stroke="#ccc" strokeDasharray="5 5" />
                         <XAxis dataKey="day" />
-                        <YAxis domain={[0, 'dataMax + 1']} />
+                        <YAxis allowDecimals={false} domain={[0, 'auto']} />
                         <Legend verticalAlign="top" height={10} />
                         <Line type="monotone" dataKey="avgCommits" stroke="#82ca9d" />
                         <Line type="monotone" dataKey="commits" stroke="#8884d8" strokeWidth="2"  dot={{ strokeWidth: 3 }} />
@@ -52,17 +53,14 @@ const Repos = ({project, idx, avgData}) => {
             }
             <ul key={project.id}>
                 <li>Project URL: {project.url}</li>
-                <li>Project Creation Date: {project.created_at}</li>
-                <li>Project Updated Date: {project.updated_at}</li>
-                <li>Project Pushed Date: {project.pushed_at}</li>
-                <ListGroupItem onClick={() => setOpen(!open)}>Project Commit Counts: {project.commit_counts.length}</ListGroupItem>
+                <ListGroupItem onClick={() => setOpen(!open)}>Project Commit Counts: {project.commit_counts.length - 1}</ListGroupItem>
                 <Collapse in={open}>
                     <ul>
                     {
                         commit_counts.map((commit, idx) => {
                             if (!commit.files) return;
                             return (
-                                <div key={Math.random() + idx}>
+                                <div key={commit.sha}>
                                     <Project commit={commit} />
                                 </div>)
                             })

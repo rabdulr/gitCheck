@@ -81,6 +81,7 @@ const App = () => {
             if (!cohort) return;
             const studentNames = cohort.map(student => student.name)
             const cohortObj = [{
+                id: 1,
                 cohort: '2006',
                 value: {
                     students: studentNames,
@@ -99,7 +100,6 @@ const App = () => {
 
     const updateList = async (usersList, projectList) => {
         try {
-            console.log('hi!')
             const {data: {returnedAvgData, cohort}} = await axios.post('/api/github/updateList', {usersList, projectList}, {params: {token}});
             console.log('avg data sets: ', returnedAvgData, cohort)
             return {returnedAvgData, cohort}
@@ -125,7 +125,7 @@ const App = () => {
                         {
                             token ?
                                 <>
-                                    <Nav.Link>Cohort List</Nav.Link>
+                                    <Select options={allCohorts} onChange={(values) => setCohortClass(values[0])} labelField={'cohort'} valueField={'value'}/>
                                     <Navbar.Collapse className="justify-content-end">
                                         <Button variant="primary" onClick={logOut}>Log Out</Button>
                                     </Navbar.Collapse>
@@ -134,50 +134,51 @@ const App = () => {
                                     {/* <Button variant="primary" onClick={getLimit}>Get Limits</Button> */}
                                 </> :
                                 <>
-                                    <Button variant="primary" onClick={gitHubLogin}>GitHub Login</Button>
+                                    <Navbar.Collapse className="justify-content-end">
+                                        <Button variant="primary" onClick={gitHubLogin}>GitHub Login</Button>
+                                    </Navbar.Collapse>
                                 </>
                         }
                     </Navbar>
                 {/* <Row>
-                    <Col>
-                        <h3>Access Token: {token ? token : `No Token Set`}</h3>
+                    <Col >
+                        {
+                            !token ? <><h3>Welcome, you're not logged in yet!</h3></> 
+                                : <><h3>You're totally logged in</h3></>
+                        }
+                    </Col>
+                    <Col >
+                        <h3>Here's some stuff that should show up.</h3>
                     </Col>
                 </Row> */}
+                <Row>
+                    <Col>
+                        {
+                            cohortClass ? 
+                                <Tabs defaultActiveKey="classData" id="data-navigation" activeKey={key} onSelect={k => setKey(k)}>
+                                    <Tab eventKey="classData" title="Class Data">
+                                        <ClassData avgData={cohortClass.value.cohortAvg} />
+                                    </Tab>
+                                    <Tab eventKey="classStudentView" title="Student List">
+                                        <ClassStudentView avgData={cohortClass.value.cohortAvg} cohortData={cohortClass.value.cohortData} />
+                                    </Tab>
+                                    <Tab eventKey="classEdit" title="Edit Class">
+                                        <CreateCohort allCohorts={allCohorts} setAllCohorts={setAllCohorts} cohortClass={cohortClass} setKey={setKey} updateList={updateList} setCohortClass={setCohortClass} />
+                                    </Tab>
+                                </Tabs>
+                                : <div>No Data Set</div>
+                        }
+                    </Col>
+                </Row>
             </Container>
-            <Container fluid>
+            {/* <Container fluid>
                 <Col>
                     <Select options={allCohorts} onChange={(values) => setCohortClass(values[0])} labelField={'cohort'} valueField={'value'}/>
                 </Col>
-                {/* {
+                {
                     cohortClass ? <ClassView cohort={cohortClass} allCohorts={allCohorts} setAllCohorts={setAllCohorts} />
                     : <div></div>
-                } */}
-            </Container>
-            <Tabs defaultActiveKey="classData" id="data-navigation" activeKey={key} onSelect={k => setKey(k)}>
-                <Tab eventKey="classData" title="Class Data">
-                    {
-                        cohortClass ?
-                            <ClassData avgData={cohortClass.value.cohortAvg} />
-                            : <div>Cohort Not Selected</div>
-                    }
-                </Tab>
-                <Tab eventKey="ClassStudentsView" title="Student List">
-                    {
-                        cohortClass ?
-                            <ClassStudentView avgData={cohortClass.value.cohortAvg} cohortData={cohortClass.value.cohortData} />
-                            : <div>Cohort Not Selected</div>
-                    }
-                </Tab>
-                <Tab eventKey="classEdit" title="Edit Class">
-                    {
-                        cohortClass ?
-                            <CreateCohort allCohorts={allCohorts} setAllCohorts={setAllCohorts} cohortClass={cohortClass} setKey={setKey} updateList={updateList} setCohortClass={setCohortClass} />
-                            : <div>Cohort Not Selected</div>
-                    }
-                </Tab>
-            </Tabs>
-            {/* <Container fluid>
-                <CreateCohort allCohorts={allCohorts} setAllCohorts={setAllCohorts} />
+                }
             </Container> */}
         </div>
     )
