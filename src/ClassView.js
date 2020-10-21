@@ -24,7 +24,7 @@ const ClassView = ({cohort, allCohorts, setAllCohorts }) => {
     }, []);
 
     return (
-        <div>
+        <>
             {
                 error
             }
@@ -50,7 +50,7 @@ const ClassView = ({cohort, allCohorts, setAllCohorts }) => {
                     <Route  path="/editCohort" render={(props) => <CreateCohort {...props} allCohorts={allCohorts} setAllCohorts={setAllCohorts} cohortClass={cohort} />} />
                 </Switch>
             </Router>
-        </div>
+        </>
     )
 }
 

@@ -9,6 +9,7 @@ import Spinner from 'react-bootstrap/Spinner';
 import Button from 'react-bootstrap/Button';
 import Tabs from 'react-bootstrap/Tabs';
 import Tab from 'react-bootstrap/Tab';
+import Navbar from 'react-bootstrap/Navbar';
 
 import CreateCohort from './CreateCohort';
 import ClassData from './ClassData';
@@ -119,30 +120,29 @@ const App = () => {
     return (
         <div>
             <Container fluid>
-                <Row>
-                    <Col>
-                        <h1>GitCheck FSA</h1>
-                    </Col>
-                        <Nav>
-                            {
-                                token ?
-                                    <div>
+                    <Navbar bg="light" expand="md">
+                        <Navbar.Brand href="#home">gitCheck FSA</Navbar.Brand>
+                        {
+                            token ?
+                                <>
+                                    <Nav.Link>Cohort List</Nav.Link>
+                                    <Navbar.Collapse className="justify-content-end">
                                         <Button variant="primary" onClick={logOut}>Log Out</Button>
-                                        {/* <Button variant="primary" onClick={getStudent}>Get User</Button> */}
-                                        {/* <Button variant="primary" onClick={getStudents}>Get Students</Button> */}
-                                        {/* <Button variant="primary" onClick={getLimit}>Get Limits</Button> */}
-                                    </div> :
-                                    <div>
-                                        <Button variant="primary" onClick={gitHubLogin}>GitHub Login</Button>
-                                    </div>
-                            }
-                        </Nav>
-                </Row>
-                <Row>
+                                    </Navbar.Collapse>
+                                    {/* <Button variant="primary" onClick={getStudent}>Get User</Button> */}
+                                    {/* <Button variant="primary" onClick={getStudents}>Get Students</Button> */}
+                                    {/* <Button variant="primary" onClick={getLimit}>Get Limits</Button> */}
+                                </> :
+                                <>
+                                    <Button variant="primary" onClick={gitHubLogin}>GitHub Login</Button>
+                                </>
+                        }
+                    </Navbar>
+                {/* <Row>
                     <Col>
                         <h3>Access Token: {token ? token : `No Token Set`}</h3>
                     </Col>
-                </Row>
+                </Row> */}
             </Container>
             <Container fluid>
                 <Col>

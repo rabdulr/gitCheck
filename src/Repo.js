@@ -34,10 +34,10 @@ const Repos = ({project, idx, avgData}) => {
 
     return (
         <div key={idx}>
-            <li><h4>Project Name: {project.name}</h4></li>
+            <h4>Project Name: {project.name}</h4>
             {
                 data.length > 0 ?
-                <div>
+                <>
                     <LineChart width={900} height={300} data={combinedData || data} margin={{top: 5, right: 20, bottom: 5, left: 0}}>
                         <CartesianGrid stroke="#ccc" strokeDasharray="5 5" />
                         <XAxis dataKey="day" />
@@ -47,7 +47,7 @@ const Repos = ({project, idx, avgData}) => {
                         <Line type="monotone" dataKey="commits" stroke="#8884d8" strokeWidth="2"  dot={{ strokeWidth: 3 }} />
                         <Tooltip />
                     </LineChart>
-                </div>
+                </>
                 : <h3>No Data to Graph</h3>
             }
             <ul key={project.id}>
