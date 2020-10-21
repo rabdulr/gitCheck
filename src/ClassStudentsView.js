@@ -11,8 +11,8 @@ const ClassStudentView = ({cohortData, avgData}) => {
     const [studentInfo, setStudentInfo] = useState(cohortData[0]); 
     return (
         <Row style={{marginTop: '0'}}>
-            <Col xs={2} style={{paddingLeft: '0'}}>
-                <Scrollbars style={{height: 650, marginTop: 0}} autoHide={true}>
+            <Col xs={1} style={{paddingRight: '0', paddingLeft: '0'}}>
+                <Scrollbars style={{height: 900, marginTop: 0}} autoHide={true}>
                     {
                         cohortData.map(student => {
                             return (

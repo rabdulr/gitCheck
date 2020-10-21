@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, forwardRef} from 'react';
 import Project from './Project';
 import { LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip, Legend} from 'recharts';
 import {basicCommitLineData, findData, combineData} from '../functions';
@@ -6,6 +6,18 @@ import Card from 'react-bootstrap/Card';
 import Collapse from 'react-bootstrap/Collapse';
 import ListGroupItem from 'react-bootstrap/ListGroupItem';
 import ListGroup from 'react-bootstrap/ListGroup';
+import MaterialTable from 'material-table';
+import FirstPage from '@material-ui/icons/FirstPage';
+import LastPage from '@material-ui/icons/LastPage';
+import ChevronLeft from '@material-ui/icons/ChevronLeft';
+import ChevronRight from '@material-ui/icons/ChevronRight';
+
+const tableIcons = {
+    FirstPage: forwardRef((props, ref) => <FirstPage {...props} ref={ref} />),
+    LastPage: forwardRef((props, ref) => <LastPage {...props} ref={ref} />),
+    NextPage: forwardRef((props, ref) => <ChevronRight {...props} ref={ref} />),
+    PreviousPage: forwardRef((props, ref) => <ChevronLeft {...props} ref={ref} />),
+}
 
 const Repos = ({project, idx, avgData}) => {
     const [data, setData] = useState(basicCommitLineData(project));
@@ -30,7 +42,22 @@ const Repos = ({project, idx, avgData}) => {
         if (data && classData){
             setCombinedData(combineData(data, classData));
         }
-    }, [classData, data])
+    }, [classData, data]);
+
+
+    const tableData = (commits) => {
+        const filteredCommits = commits.filter(commit => commit.commit.author.name !== "Fork");
+
+        return filteredCommits.map(commit => {
+            const basicCommit = {
+                commit: commit.commit.message,
+                additions: commit.stats.additions,
+                deletions: commit.stats.deletions,
+                date: new Date(commit.commit.committer.date).toLocaleDateString()
+            };
+            return basicCommit
+        })
+    }
 
     return (
         <div key={idx}>
@@ -51,23 +78,23 @@ const Repos = ({project, idx, avgData}) => {
                 </>
                 : <h3>No Data to Graph</h3>
             }
-            <ul key={project.id}>
-                <li>Project URL: {project.url}</li>
-                <ListGroupItem onClick={() => setOpen(!open)}>Project Commit Counts: {project.commit_counts.length - 1}</ListGroupItem>
-                <Collapse in={open}>
-                    <ul>
-                    {
-                        commit_counts.map((commit, idx) => {
-                            if (!commit.files) return;
-                            return (
-                                <div key={commit.sha}>
-                                    <Project commit={commit} />
-                                </div>)
-                            })
-                    }
-                    </ul>
-                </Collapse>
-            </ul>
+                {/* <li>Project URL: {project.url}</li> */}
+                <MaterialTable
+                    options={{
+                        search: false,
+                    }}
+                    icons={tableIcons}
+                    columns={[
+                        { title: "Commit", field: "commit" },
+                        { title: "Additions", field: "additions" },
+                        { title: "Deletions", field: "deletions" },
+                        { title: "Date", field: "date" }
+                    ]}
+
+                    title="Commits"
+
+                    data={tableData(commit_counts)}
+                />
         </div>
     )
 }
