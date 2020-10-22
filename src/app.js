@@ -3,14 +3,8 @@ import axios from 'axios';
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
-import Nav from 'react-bootstrap/Nav';
-import Select from 'react-dropdown-select';
-import Spinner from 'react-bootstrap/Spinner';
 import Button from 'react-bootstrap/Button';
-import Tabs from 'react-bootstrap/Tabs';
-import Tab from 'react-bootstrap/Tab';
 import Navbar from 'react-bootstrap/Navbar';
-import Modal from 'react-bootstrap/Modal';
 import DropdownButton from 'react-bootstrap/DropdownButton';
 import Dropdown from 'react-bootstrap/Dropdown';
 import {
@@ -22,9 +16,7 @@ import {
   } from 'react-router-dom';
 
 import CreateCohort from './CreateCohort';
-import ClassData from './ClassData';
-import ClassStudentView from './ClassStudentsView';
-import RouteTest from './RouteTest';
+import ClassInfo from './ClassInfo';
 
 
 const App = () => {
@@ -33,11 +25,10 @@ const App = () => {
     const [student, setStudent] = useState(JSON.parse(window.localStorage.getItem('student')));
     // const [cohort, setCohort] = useState(JSON.parse(window.localStorage.getItem('cohort')));
     const [limits, setLimits] = useState({});
-    const [key, setKey] = useState('classData');
+
 
     const [allCohorts, setAllCohorts] = useState([]);
-    const [cohortClass, setCohortClass] = useState([]);
-    const [newCohort, setNewCohort] = useState(false);
+    
 
     useEffect(() => {
         // attempting to clear accesss_token from URL
@@ -138,8 +129,7 @@ const App = () => {
                     {
                         token ?
                             <>
-                                <Select options={allCohorts} onChange={(values) => setCohortClass(values[0])} labelField="cohort" valueField="value" />
-                                <DropdownButton id="dropdown-basic-button" title="Select Cohort">
+                                <DropdownButton id="dropdown-basic-button" title="Select Cohort" variant="secondary">
                                     {
                                         allCohorts.length > 0 ?
                                             allCohorts.map(newClass => <Dropdown.Item as={Link} to={`/cohort/${newClass.id}`}>{newClass.cohort}</Dropdown.Item>)
@@ -167,32 +157,17 @@ const App = () => {
                         {
                             token ?
                                 <>
-                                        <Route path="/">
+                                        <Route exact path="/">
                                             <h3>Main Page Info</h3>
                                         </Route>
                                         <Route path="/cohort/:id">
-                                            <RouteTest />
+                                            <ClassInfo updateList={updateList} allCohorts={allCohorts} setAllCohorts={setAllCohorts} />
                                         </Route>
                                         <Route path="/new-cohort">
-                                            <CreateCohort allCohorts={allCohorts} setAllCohorts={setAllCohorts} setKey={setKey} updateList={updateList} setCohortClass={setCohortClass} />
+                                            <CreateCohort allCohorts={allCohorts} setAllCohorts={setAllCohorts} updateList={updateList} />
                                         </Route>
                                 </> : <></>
                         }
-                        {/* {
-                            cohortClass.value ?
-                                <Tabs defaultActiveKey="classData" id="data-navigation" activeKey={key} onSelect={k => setKey(k)}>
-                                    <Tab eventKey="classData" title="Class Data">
-                                        <ClassData avgData={cohortClass.value.cohortAvg} />
-                                    </Tab>
-                                    <Tab eventKey="classStudentView" title="Student List">
-                                        <ClassStudentView avgData={cohortClass.value.cohortAvg} cohortData={cohortClass.value.cohortData} />
-                                    </Tab>
-                                    <Tab eventKey="classEdit" title="Edit Class">
-                                        <CreateCohort allCohorts={allCohorts} setAllCohorts={setAllCohorts} cohortClass={cohortClass} setKey={setKey} updateList={updateList} setCohortClass={setCohortClass} />
-                                    </Tab>
-                                </Tabs>
-                                : <div>No Data Set</div>
-                        } */}
                     </Col>
                 </Row>
             </Container>

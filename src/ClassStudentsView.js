@@ -4,7 +4,7 @@ import { Scrollbars } from 'react-custom-scrollbars';
 import Col from 'react-bootstrap/Col';
 import ListGroupItem from 'react-bootstrap/ListGroupItem';
 
-import Student from './Student';
+import Student from './Students';
 import StudentCard from './StudentCard'
 
 const ClassStudentView = ({cohortData, avgData}) => {
