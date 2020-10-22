@@ -10,10 +10,21 @@ import Button from 'react-bootstrap/Button';
 import Tabs from 'react-bootstrap/Tabs';
 import Tab from 'react-bootstrap/Tab';
 import Navbar from 'react-bootstrap/Navbar';
+import Modal from 'react-bootstrap/Modal';
+import DropdownButton from 'react-bootstrap/DropdownButton';
+import Dropdown from 'react-bootstrap/Dropdown';
+import {
+    BrowserRouter as Router,
+    Route,
+    Link,
+    Switch,
+    useParams
+  } from 'react-router-dom';
 
 import CreateCohort from './CreateCohort';
 import ClassData from './ClassData';
 import ClassStudentView from './ClassStudentsView';
+import RouteTest from './RouteTest';
 
 
 const App = () => {
@@ -24,10 +35,11 @@ const App = () => {
     const [limits, setLimits] = useState({});
     const [key, setKey] = useState('classData');
 
-    const [allCohorts, setAllCohorts] = useState();
-    const [cohortClass, setCohortClass] = useState();
+    const [allCohorts, setAllCohorts] = useState([]);
+    const [cohortClass, setCohortClass] = useState([]);
+    const [newCohort, setNewCohort] = useState(false);
 
-    useEffect(() =>{
+    useEffect(() => {
         // attempting to clear accesss_token from URL
         // Come back later once functions work
         const query = window.location.search.substring(1);
@@ -65,7 +77,7 @@ const App = () => {
     const getStudent = async () => {
         const user = localStorage.getItem('student');
         try {
-                const {data:{student}} = await axios.get('/api/github/getUser', {params: {token}})
+                const {data: {student}} = await axios.get('/api/github/getUser', {params: {token}})
                 setStudent(student);
                 // localStorage.setItem('student', JSON.stringify(student))
         } catch (error) {
@@ -76,7 +88,7 @@ const App = () => {
     const getStudents = async () => {
         // const users = localStorage.getItem('cohort');
         try {
-            const {data:{returnedAvgData, cohort}} = await axios.get('/api/github/getUsers', {params: {token}})
+            const {data: {returnedAvgData, cohort}} = await axios.get('/api/github/getUsers', {params: {token}})
             console.log('FE COHORT: ', cohort)
             if (!cohort) return;
             const studentNames = cohort.map(student => student.name)
@@ -115,46 +127,59 @@ const App = () => {
         } catch (error) {
             throw error;
         }
-    }
+    };
 
+    console.log('all cohorts: ', allCohorts)
     return (
-        <div>
+        <>
             <Container fluid>
-                    <Navbar bg="light" expand="md">
-                        <Navbar.Brand href="#home">gitCheck FSA</Navbar.Brand>
-                        {
-                            token ?
-                                <>
-                                    <Select options={allCohorts} onChange={(values) => setCohortClass(values[0])} labelField={'cohort'} valueField={'value'}/>
-                                    <Navbar.Collapse className="justify-content-end">
-                                        <Button variant="primary" onClick={logOut}>Log Out</Button>
-                                    </Navbar.Collapse>
-                                    {/* <Button variant="primary" onClick={getStudent}>Get User</Button> */}
-                                    {/* <Button variant="primary" onClick={getStudents}>Get Students</Button> */}
-                                    {/* <Button variant="primary" onClick={getLimit}>Get Limits</Button> */}
-                                </> :
-                                <>
-                                    <Navbar.Collapse className="justify-content-end">
-                                        <Button variant="primary" onClick={gitHubLogin}>GitHub Login</Button>
-                                    </Navbar.Collapse>
-                                </>
-                        }
-                    </Navbar>
-                {/* <Row>
-                    <Col >
-                        {
-                            !token ? <><h3>Welcome, you're not logged in yet!</h3></> 
-                                : <><h3>You're totally logged in</h3></>
-                        }
-                    </Col>
-                    <Col >
-                        <h3>Here's some stuff that should show up.</h3>
-                    </Col>
-                </Row> */}
+                <Navbar bg="light" expand="md">
+                    <Navbar.Brand as={Link} to={'/'}>gitCheck FSA</Navbar.Brand>
+                    {
+                        token ?
+                            <>
+                                <Select options={allCohorts} onChange={(values) => setCohortClass(values[0])} labelField="cohort" valueField="value" />
+                                <DropdownButton id="dropdown-basic-button" title="Select Cohort">
+                                    {
+                                        allCohorts.length > 0 ?
+                                            allCohorts.map(newClass => <Dropdown.Item as={Link} to={`/cohort/${newClass.id}`}>{newClass.cohort}</Dropdown.Item>)
+                                            : <></>
+                                    }
+                                    {/* <Dropdown.Item href="#/cohort">Cohort</Dropdown.Item> */}
+                                </DropdownButton>
+                                <Navbar.Collapse className="justify-content-end">
+                                    <Button variant="primary" as={Link} to={'/new-cohort'} >Add New</Button>{' '}
+                                    <Button variant="primary" onClick={logOut}>Log Out</Button>
+                                </Navbar.Collapse>
+                                {/* <Button variant="primary" onClick={getStudent}>Get User</Button> */}
+                                {/* <Button variant="primary" onClick={getStudents}>Get Students</Button> */}
+                                {/* <Button variant="primary" onClick={getLimit}>Get Limits</Button> */}
+                            </> :
+                            <>
+                                <Navbar.Collapse className="justify-content-end">
+                                    <Button variant="primary" onClick={gitHubLogin}>GitHub Login</Button>
+                                </Navbar.Collapse>
+                            </>
+                    }
+                </Navbar>
                 <Row>
                     <Col>
                         {
-                            cohortClass ? 
+                            token ?
+                                <>
+                                        <Route path="/">
+                                            <h3>Main Page Info</h3>
+                                        </Route>
+                                        <Route path="/cohort/:id">
+                                            <RouteTest />
+                                        </Route>
+                                        <Route path="/new-cohort">
+                                            <CreateCohort allCohorts={allCohorts} setAllCohorts={setAllCohorts} setKey={setKey} updateList={updateList} setCohortClass={setCohortClass} />
+                                        </Route>
+                                </> : <></>
+                        }
+                        {/* {
+                            cohortClass.value ?
                                 <Tabs defaultActiveKey="classData" id="data-navigation" activeKey={key} onSelect={k => setKey(k)}>
                                     <Tab eventKey="classData" title="Class Data">
                                         <ClassData avgData={cohortClass.value.cohortAvg} />
@@ -167,20 +192,11 @@ const App = () => {
                                     </Tab>
                                 </Tabs>
                                 : <div>No Data Set</div>
-                        }
+                        } */}
                     </Col>
                 </Row>
             </Container>
-            {/* <Container fluid>
-                <Col>
-                    <Select options={allCohorts} onChange={(values) => setCohortClass(values[0])} labelField={'cohort'} valueField={'value'}/>
-                </Col>
-                {
-                    cohortClass ? <ClassView cohort={cohortClass} allCohorts={allCohorts} setAllCohorts={setAllCohorts} />
-                    : <div></div>
-                }
-            </Container> */}
-        </div>
+        </>
     )
 }
 

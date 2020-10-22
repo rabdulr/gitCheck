@@ -6,6 +6,7 @@ import Card from 'react-bootstrap/Card';
 import InputGroup from 'react-bootstrap/InputGroup';
 import Form from 'react-bootstrap/Form';
 import Button from 'react-bootstrap/Button';
+import { Link } from "react-router-dom";
 
 const CreateCohort = ({allCohorts, setAllCohorts, cohortClass, updateList, setKey, setCohortClass}) => {
 
@@ -80,7 +81,7 @@ const CreateCohort = ({allCohorts, setAllCohorts, cohortClass, updateList, setKe
             <Row>
                 <Card style={{width: '100%'}}>
                     <Card.Body>
-                        <Card.Title>{cohortClass ? 'Update Cohort' : 'Add New Cohort'}</Card.Title>
+                        <Card.Title>{cohortClass ? 'Update Cohort' : 'Create New Cohort'}</Card.Title>
                         <Card.Body>
                             <Form>
                                 <Form.Group as={Row} controlId='formCohorttName'>
@@ -134,9 +135,9 @@ const CreateCohort = ({allCohorts, setAllCohorts, cohortClass, updateList, setKe
                                         style={{width: '100%'}} />
                                     </Col>
                                 </Form.Group>
-                                <Button variant="primary" onClick={ev => createCohort(ev)}>{cohortClass ? `Update Cohort` : `Create Cohort`}</Button>
+                                <Button variant="primary" onClick={ev => createCohort(ev)}>{cohortClass ? `Update Cohort` : `Create Cohort`}</Button>{' '}
                                 {
-                                    cohortClass ? <Button variant="primary" onClick={() => setKey('classData')}>Cancel</Button> : <Button variant="primary">Cancel</Button>
+                                    cohortClass ? <Button variant="primary" onClick={() => setKey('classData')}>Cancel</Button> : <Button variant="primary" as={Link} to={'/'}>Cancel</Button>
                                 }
                             </Form>
                         </Card.Body>
