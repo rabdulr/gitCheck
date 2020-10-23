@@ -1,10 +1,11 @@
 const client = require('./client');
-const { createUser, updateUserToken } = require('./index')
+const { createUser, createCohort} = require('./index')
 
 async function dropTables() {
     console.log('Dropping All Tables...');
     try {
         await client.query(`
+        DROP TABLE IF EXISTS cohorts;
         DROP TABLE IF EXISTS users;
         `)
     } catch (error) {
@@ -21,6 +22,13 @@ async function createTables() {
                 email VARCHAR(255) UNIQUE NOT NULL,
                 "accessToken" VARCHAR(255)
             );
+
+            CREATE TABLE cohorts(
+                id SERIAL PRIMARY KEY,
+                "creatorId" INTEGER REFERENCES users(id),
+                "dateCreated" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                name VARCHAR(255)
+            )
         `);
         console.log('Finished building tables...')
     } catch (error) {
@@ -48,12 +56,30 @@ async function createInitialUsers() {
     }
 }
 
+async function createInitialCohorts(){
+    console.log('Starting to create initial cohorts');
+    try {
+        const cohortsToCreate = [
+            {id: 1, name: 'Cohort One'},
+            {id: 2, name: 'Cohort Two'}
+        ];
+
+        const cohorts = await Promise.all(cohortsToCreate.map(createCohort));
+        console.log('Cohorts created: ');
+        console.log(cohorts);
+        console.log('Finished creating cohorts!');
+    } catch (error) {
+        console.log('Error creating cohorts!');
+        throw error;
+    }
+}
 async function rebuildDB() {
     try {
         client.connect();
         await dropTables();
         await createTables();
         await createInitialUsers();
+        await createInitialCohorts();
     } catch (error) {
         console.log('Error during rebuildDB');
         throw error;

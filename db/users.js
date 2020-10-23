@@ -2,7 +2,7 @@ const client = require('./client');
 
 // DB Functions
 
-// User functions
+// User functions, no delete option yet
 
 async function createUser({email, accessToken}) {
     try {
@@ -10,6 +10,28 @@ async function createUser({email, accessToken}) {
             INSERT INTO users(email, "accessToken") VALUES ($1, $2)
             RETURNING *;
         `, [email, accessToken]);
+        return user;
+    } catch (error) {
+        throw error;
+    }
+}
+
+async function getUserByEmail(email) {
+    try {
+        const {rows: [user]} = await client.query(`
+            SELECT * FROM users where email=$1
+        `, [email])
+        return user;
+    } catch (error) {
+        throw error;
+    }
+}
+
+async function getUserById(id) {
+    try {
+        const {rows: [user]} = await client.query(`
+            SELECT * FROM users where id=$1
+        `, [id]);
         return user;
     } catch (error) {
         throw error
@@ -32,5 +54,7 @@ async function updateUserToken({id, accessToken}) {
 
 module.exports = {
     createUser,
+    getUserByEmail,
+    getUserById,
     updateUserToken
 }
