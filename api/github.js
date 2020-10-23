@@ -3,13 +3,12 @@ const {STUDENT_LIST, CLIENT_ID, CLIENT_SECRET, PROJECTS} = process.env;
 const COHORT = JSON.parse(STUDENT_LIST);
 const {timedPromise, projectAvg, chunkStudentList} = require('../functions')
 const axios = require('axios');
-const redis = require('redis');
 const sizeof = require('object-sizeof')
-const REDIST_PORT = 6379;
+const redis = require('redis');
 const redisCLient = redis.createClient();
 
 // Project List for testing
-const projects = JSON.parse(PROJECTS)
+const seedProjects = JSON.parse(PROJECTS)
 
 // Cohort information is currently hard coded
 // Will need to create a way to get from an array on Front End
@@ -25,11 +24,11 @@ const headers = (token) => {
     return header;
 };
 
-const startGetUser = async (token, student) => {
+const startGetUser = async (token, student, projects) => {
     console.log(`STARTING PROCESS: ${student}`)
     const info = {};
     info.name = student;
-    info.repository = await getUserInfo(token, student);
+    info.repository = await getUserInfo(token, student, projects);
     console.log(`ENDING PROCESS: ${student}`)
     redisCLient.setex(info.name, 18000, JSON.stringify(info));
     return info
@@ -66,13 +65,28 @@ const getLimit = async (token) => {
     return limit;
 };
 
-const getUserInfo = async (token, username) => {
+const returnUserData = (chunkList, projectList, token) => {
+    try {
+        let delayTime = 0;
+        return Promise.all(chunkList.map(set => {
+            return Promise.all(set.map(async (username) => {
+                delayTime += 50
+                const {data: {student}} = await timedPromise(delayTime, axios.post(`http://localhost:3000/api/github/getUsers/${username}`, {projectList}, {params: {token}}))
+                return student;
+            }))
+        }))
+    } catch (error) {
+        return error
+    }
+}
+
+const getUserInfo = async (token, username, projects) => {
     try {
         console.log(`GETTING info for ${username}`)
         const URL = `https://api.github.com/users/${username}`;
         const PRIVATE_URL = `https://api.github.com/repos/${username}`
 
-        const {data: user} = await axios(`${URL}`, headers);
+        const {data: user} = await axios(`${URL}`, headers(token));
         const repos = await Promise.all(projects.map(async project => {
             // return project;
             const {data} = await axios(`${PRIVATE_URL}/${project.name}`, headers(token));
@@ -80,13 +94,7 @@ const getUserInfo = async (token, username) => {
             return data
         }));
         await Promise.all(repos.map(async (repo) => {
-            // create a function in which we look at the name and cross check a list of repos of repos we are looking for
-            // If repo is not part of list, create a new key .ignore = true, return
-            // Repos are forks, therefore, no need to veriy - functionality will work until personal projects appear
-            // console.log('Repo name (lower case): ', repo.name.toLowerCase())
-            // repo.ignore = !checkRepoName(repo.name.toLowerCase());
-            // console.log('Repo ignore: ', repo.ignore)
-            // if(repo.ignore) return repo;
+            // Since repo is currently forked, we are getting exact matches
             repo.ignore = false;
 
             delete repo.owner;
@@ -169,40 +177,16 @@ router.get('/getLimit', async (req, res, next) => {
     }
 });
 
-// router.get('/getUser', async (req, res) => {
-//     const {token} = req.query;
-//     // Call limit later as own function
-//     // const limit = await getLimit(token);
-//     const student = {}
-//     // Have name be whater the body is for future
-//     student.name = 'tillyninjaspace';
-//     student.repository = await getUserInfo(token, '');
-//     res.send({student})
-// });
-
-
-router.get('/getUsers', async (req, res) => {
+router.post('/updateList', async (req, res) => {
+    const {usersList, projectList} = req.body;
     const {token} = req.query;
-    // Function below with mapping
     try {
-        console.log(COHORT)
-        const chunkList = chunkStudentList(COHORT, 2);
-        let delayTime = 0;
-        const chunkedData = await Promise.all(chunkList.map( set => {
-            return Promise.all(set.map(async (username) => {
-                delayTime += 50
-                const {data: {student}} = await timedPromise(delayTime, axios.get(`http://localhost:3000/api/github/getUsers/${username}`, {params: {token}}))
-                return student;
-            }))
-            .catch(err => console.log(err));
-        }));
+        console.log(usersList)
+        const chunkList = chunkStudentList(usersList, 2);
+        const chunkedData = await returnUserData(chunkList, projectList, token);
         const cohort = chunkedData.flat().filter(item => item !== undefined);
         // Calculate AVG Data for each project
-        const returnedAvgData = projects.map(project => projectAvg(cohort, project));
-        // const cohort = sorted.map(student => {
-        //     delete student.repository.repo;
-        //     return student
-        // });
+        const returnedAvgData = projectList.map(project => projectAvg(cohort, project));
         console.log('avg Data: ', returnedAvgData);
         console.log('Size of cohort file: ', sizeof(cohort))
         res.send({cohort, returnedAvgData})
@@ -211,11 +195,31 @@ router.get('/getUsers', async (req, res) => {
     }
 });
 
-router.get('/getUsers/:username', cache, async (req, res) => {
+router.get('/getUsers', async (req, res) => {
+    const {token} = req.query;
+    // Function is reading seed data from .env
+    try {
+        console.log(COHORT)
+        const chunkList = chunkStudentList(COHORT, 2);
+        const projectList = seedProjects
+        const chunkedData = await returnUserData(chunkList, projectList, token);
+        const cohort = chunkedData.flat().filter(item => item !== undefined);
+        // Calculate AVG Data for each project
+        const returnedAvgData = projectList.map(project => projectAvg(cohort, project));
+        console.log('avg Data: ', returnedAvgData);
+        console.log('Size of cohort file: ', sizeof(cohort))
+        res.send({cohort, returnedAvgData})
+    } catch (error) {
+        throw error;
+    }
+});
+
+router.post('/getUsers/:username', cache, async (req, res) => {
     const {username} = req.params;
     const {token} = req.query;
+    const {projectList} = req.body
     try {
-        const student = await startGetUser(token, username);
+        const student = await startGetUser(token, username, projectList);
         res.send({student})
     } catch (error) {
         throw error

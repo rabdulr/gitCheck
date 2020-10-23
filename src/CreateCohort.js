@@ -6,11 +6,10 @@ import Card from 'react-bootstrap/Card';
 import InputGroup from 'react-bootstrap/InputGroup';
 import Form from 'react-bootstrap/Form';
 import Button from 'react-bootstrap/Button';
-import Nav from 'react-bootstrap/Nav';
-import {Link} from "react-router-dom";
+import { Link } from "react-router-dom";
 
-const CreateCohort = ({allCohorts, setAllCohorts, cohortClass}) => {
-    console.log('cohort: ', cohortClass);
+const CreateCohort = ({allCohorts, setAllCohorts, cohortClass, updateList, setKey, setCohortClass}) => {
+
     const [cohortName, setCohortName] = useState('');
     const [studentListArr, setStudentListArr] = useState([]);
     const [projectList, setProjectList] = useState([]);
@@ -24,7 +23,6 @@ const CreateCohort = ({allCohorts, setAllCohorts, cohortClass}) => {
             const newList = students.map(student => {
                 return {value: student, label: student}
             });
-            console.log('students: ', newList)
             setStudentListArr(newList)
             setCohortName(name);
             setProjectList(projects);
@@ -46,7 +44,7 @@ const CreateCohort = ({allCohorts, setAllCohorts, cohortClass}) => {
         setProjectList(updateList);
     }
 
-    const createCohort = (ev) => {
+    const createCohort = async (ev) => {
         ev.preventDefault();
         const students = studentListArr.map(student => student.value);
         const value = {
@@ -59,18 +57,31 @@ const CreateCohort = ({allCohorts, setAllCohorts, cohortClass}) => {
             cohort: cohortName,
             value
         };
-        setAllCohorts([...allCohorts, newCohort]);
-        setCohortName('')
-        setStudentListArr([]);
-        setProjectList([]);
+        if (cohortClass) {
+            // Need to send update of list/items that were updated to DB
+            // Run an update on the items
+            const {returnedAvgData, cohort} = await updateList(students, projectList);
+            newCohort.id = cohortClass.id
+            newCohort.value.cohortData = cohort;
+            newCohort.value.cohortAvg = returnedAvgData;
+            console.log('new Cohort: ', newCohort)
+            setAllCohorts(allCohorts.map(cohort => cohort.id === newCohort.id ? newCohort : cohort));
+            setCohortClass(newCohort)
+            setKey('classData');
+        } else {
+            // Create DB entries
+            setAllCohorts([...allCohorts, newCohort]);
+            setCohortName('')
+            setStudentListArr([]);
+            setProjectList([]);
+        }
     };
 
     return (
-        <div>
             <Row>
                 <Card style={{width: '100%'}}>
                     <Card.Body>
-                        <Card.Title>{cohortClass ? 'Update Cohort' : 'Add New Cohort'}</Card.Title>
+                        <Card.Title>{cohortClass ? 'Update Cohort' : 'Create New Cohort'}</Card.Title>
                         <Card.Body>
                             <Form>
                                 <Form.Group as={Row} controlId='formCohorttName'>
@@ -89,7 +100,7 @@ const CreateCohort = ({allCohorts, setAllCohorts, cohortClass}) => {
                                 <Form.Group as={Row} controlId='formProjectDate'>
                                     <Form.Label column>Project due date</Form.Label>
                                     <Col sm="10">
-                                        <Form.Control type='text' placeholder='1/1/20' value={dueDate} onChange={ev => setDueDate(ev.target.value)} />
+                                        <Form.Control type='text' placeholder='01/01/20' value={dueDate} onChange={ev => setDueDate(ev.target.value)} />
                                     </Col>
                                 </Form.Group>
                                 <Row style={{display: 'flex', justifyContent: 'flex-end'}}>
@@ -124,16 +135,15 @@ const CreateCohort = ({allCohorts, setAllCohorts, cohortClass}) => {
                                         style={{width: '100%'}} />
                                     </Col>
                                 </Form.Group>
-                                <Button variant="primary" onClick={ev => createCohort(ev)}>{cohortClass ? `Update Cohort` : `Create Cohort`}</Button>
+                                <Button variant="primary" onClick={ev => createCohort(ev)}>{cohortClass ? `Update Cohort` : `Create Cohort`}</Button>{' '}
                                 {
-                                    cohortClass ? <Link to="/classData"><Button variant="primary">Cancel</Button></Link> : <Link to="/"><Button variant="primary">Cancel</Button></Link>
+                                    cohortClass ? <Button variant="primary" onClick={() => setKey('classData')}>Cancel</Button> : <Button variant="primary" as={Link} to={'/'}>Cancel</Button>
                                 }
                             </Form>
                         </Card.Body>
                     </Card.Body>
                 </Card>
             </Row>
-        </div>
     )
 }
 
