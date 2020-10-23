@@ -1,10 +1,11 @@
 const client = require('./client');
-const { createUser, createCohort} = require('./index')
+const { createUser, createCohort, createStudent} = require('./index')
 
 async function dropTables() {
     console.log('Dropping All Tables...');
     try {
         await client.query(`
+        DROP TABLE IF EXISTS students;
         DROP TABLE IF EXISTS cohorts;
         DROP TABLE IF EXISTS users;
         `)
@@ -28,6 +29,13 @@ async function createTables() {
                 "creatorId" INTEGER REFERENCES users(id),
                 "dateCreated" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 name VARCHAR(255)
+            );
+
+            CREATE TABLE students(
+                id SERIAL PRIMARY KEY,
+                "cohortId" INTEGER REFERENCES cohorts(id),
+                "gitHubUser" VARCHAR(255),
+                "dateCreated" TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         `);
         console.log('Finished building tables...')
@@ -56,7 +64,7 @@ async function createInitialUsers() {
     }
 }
 
-async function createInitialCohorts(){
+async function createInitialCohorts() {
     console.log('Starting to create initial cohorts');
     try {
         const cohortsToCreate = [
@@ -73,6 +81,24 @@ async function createInitialCohorts(){
         throw error;
     }
 }
+
+async function createInitialStudents() {
+    console.log('Starting to create initial students');
+    try {
+       const studentsToCreate = [
+           {cohortId: 1, gitHubUser: 'rabdulr'},
+           {cohortId: 2, gitHubUser: 'wallacepreson'}
+       ];
+       
+       const students = await Promise.all(studentsToCreate.map(createStudent))
+       console.log('Students created: ');
+       console.log(students);
+       console.log('Finished creating students!');
+    } catch (error) {
+        console.log('Error creating students!');
+        throw error
+    }
+}
 async function rebuildDB() {
     try {
         client.connect();
@@ -80,6 +106,7 @@ async function rebuildDB() {
         await createTables();
         await createInitialUsers();
         await createInitialCohorts();
+        await createInitialStudents();
     } catch (error) {
         console.log('Error during rebuildDB');
         throw error;

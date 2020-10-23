@@ -1,7 +1,6 @@
 const client = require('./client');
 
-async function createCohort(cohortInfo) {
-    const {id, name} = cohortInfo;
+async function createCohort({id, name}) {
     try {
         const {rows: [cohort]} = await client.query(`
             INSERT INTO cohorts("creatorId", name)
@@ -37,12 +36,12 @@ async function getCohortById(id) {
     }
 }
 
-async function getCohortByCreatorId(id) {
+async function getCohortByCreatorId(creatorId) {
     try {
         const {rows: cohorts} = await client.query(`
             SELECT * from cohorts
             WHERE "creatorId"=$1
-        `, [id]);
+        `, [creatorId]);
         return cohorts
     } catch (error) {
         throw error

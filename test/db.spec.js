@@ -1,5 +1,5 @@
 const { rebuildDB } = require('../db/seedData');
-const { createUser, getUserByEmail, getUserById, updateUserToken, getAllCohorts, createCohort, getCohortById } = require('../db');
+const { createUser, getUserByEmail, getUserById, updateUserToken, getAllCohorts, createCohort, getCohortById, createStudent, getAllStudents, getStudentById, getStudentsByCohortId } = require('../db');
 const client = require('../db/client');
 
 describe('Database', () => {
@@ -46,7 +46,7 @@ describe('Database', () => {
     })
     describe('Cohorts', () => {
         describe('getAllCohorts', () => {
-            it('Selects and returns an array of cohorts', async () => {
+            it('Selects and returns an array of cohorts', async() => {
                 const cohorts = await getAllCohorts();
                 const {rows: cohortsFromDB} = await client.query(`SELECT * FROM cohorts`);
                 expect(cohorts).toEqual(cohortsFromDB)
@@ -54,11 +54,35 @@ describe('Database', () => {
         })
         describe('createCohort({id, name}), getCohortById(id)', () => {
             let newCohort
-            it('Creates and returns a new cohort item, verifieds by ID', async () => {
+            it('Creates and returns a new cohort item, verified by ID', async() => {
                 newCohort = await createCohort({id: 1, name: 'Cohort Three'});
                 const verifyCohort = await getCohortById(newCohort.id);
                 expect(newCohort).toBeTruthy();
                 expect(newCohort).toStrictEqual(verifyCohort)
+            })
+        })
+    })
+    describe('Students', () => {
+        describe('getAllStudents', () => {
+            it('Selects and returns an array of students', async () => {
+                const students = await getAllStudents();
+                const {rows} = await client.query(`SELECT * FROM students`);
+                expect(students).toEqual(rows);
+            })
+        })
+        describe('createStudent({cohortId, gitHugUser}), getStudentById(id)', () => {
+            let student
+            it('Creates and returns a new student item, verified by ID', async() => {
+                student = await createStudent({cohortId: 1, gitHubUser: 'gitCheck'});
+                const verifyStudent = await getStudentById(student.id);
+                expect(student).toBeTruthy();
+                expect(student).toStrictEqual(verifyStudent);
+            })
+        })
+        describe('getStudentsByCohortId(cohortId)', () => {
+            it('Returns an array when looking by cohortId', async() => {
+                const studentsByCohortId = await getStudentsByCohortId(1)
+                expect(studentsByCohortId).toBeTruthy();
             })
         })
     })
