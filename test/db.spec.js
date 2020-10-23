@@ -1,5 +1,5 @@
 const { rebuildDB } = require('../db/seedData');
-const { createUser, getUserByEmail, getUserById, updateUserToken, getAllCohorts, createCohort, getCohortById, createStudent, getAllStudents, getStudentById, getStudentsByCohortId } = require('../db');
+const { createUser, getUserByEmail, getUserById, updateUserToken, getAllCohorts, createCohort, getCohortById, createStudent, getAllStudents, getStudentById, getStudentsByCohortId, getAllProjects, getProjectById, createProject,getProjectsByCohortId } = require('../db');
 const client = require('../db/client');
 
 describe('Database', () => {
@@ -54,10 +54,12 @@ describe('Database', () => {
         })
         describe('createCohort({id, name}), getCohortById(id)', () => {
             let newCohort
-            it('Creates and returns a new cohort item, verified by ID', async() => {
+            it('Creates and returns a new cohort item', async() => {
                 newCohort = await createCohort({id: 1, name: 'Cohort Three'});
-                const verifyCohort = await getCohortById(newCohort.id);
                 expect(newCohort).toBeTruthy();
+            })
+            it('Verifies cohort created by ID', async() => {
+                const verifyCohort = await getCohortById(newCohort.id);
                 expect(newCohort).toStrictEqual(verifyCohort)
             })
         })
@@ -74,8 +76,10 @@ describe('Database', () => {
             let student
             it('Creates and returns a new student item, verified by ID', async() => {
                 student = await createStudent({cohortId: 1, gitHubUser: 'gitCheck'});
-                const verifyStudent = await getStudentById(student.id);
                 expect(student).toBeTruthy();
+            })
+            it('Verifies student created by ID', async() => {
+                const verifyStudent = await getStudentById(student.id);
                 expect(student).toStrictEqual(verifyStudent);
             })
         })
@@ -83,6 +87,32 @@ describe('Database', () => {
             it('Returns an array when looking by cohortId', async() => {
                 const studentsByCohortId = await getStudentsByCohortId(1)
                 expect(studentsByCohortId).toBeTruthy();
+            })
+        })
+    })
+    describe('Projects', () => {
+        describe('getAllProjects', () => {
+            it('Selects and returns all projects', async() => {
+                const projects = await getAllProjects();
+                const {rows} = await client.query(`SELECT * FROM projects`);
+                expect(projects).toEqual(rows);
+            })
+        })
+        describe('createProject({cohortId, startDate, name, isForked}), getProjectById(projectId)', () => {
+            let project
+            it('Creates and returns a new project item', async() => {
+                project = await createProject({cohortId: 1, name: 'TEST GROUP', startDate: '01/01/20', isForked: true});
+                expect(project).toBeTruthy();
+            })
+            it('Verifies project created by ID', async() => {
+                const verifyProject = await getProjectById(project.id);
+                expect(project).toStrictEqual(verifyProject);
+            })
+        })
+        describe('getProjectsByCohortId(cohortId)', () => {
+            it('Returns an array when looking by cohortId', async() => {
+                const projectsByCohortId = await getProjectsByCohortId(1);
+                expect(projectsByCohortId).toBeTruthy()
             })
         })
     })

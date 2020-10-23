@@ -1,5 +1,6 @@
 module.exports = {
     ...require('./users'),
     ...require('./cohort'),
-    ...require('./students')
+    ...require('./students'),
+    ...require('./projects')
 };

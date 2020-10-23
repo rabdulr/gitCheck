@@ -7,7 +7,8 @@ const client = require('./client');
 async function createUser({email, accessToken}) {
     try {
         const {rows: [user]} = await client.query(`
-            INSERT INTO users(email, "accessToken") VALUES ($1, $2)
+            INSERT INTO users(email, "accessToken") 
+            VALUES ($1, $2)
             RETURNING *;
         `, [email, accessToken]);
         return user;
@@ -49,6 +50,14 @@ async function updateUserToken({id, accessToken}) {
         return user
     } catch (error) {
         throw error;
+    }
+}
+
+async function destroyUser(id) {
+    try {
+        console.log(id);
+    } catch (error) {
+        throw error
     }
 }
 
