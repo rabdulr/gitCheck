@@ -1,5 +1,5 @@
 const { rebuildDB } = require('../db/seedData');
-const { createUser, getUserByEmail, getUserById, updateUserToken, getAllCohorts, createCohort, getCohortById, updateCohortName, destroyCohort, createStudent, getAllStudents, getStudentById, getStudentsByCohortId, destroyStudent, getAllProjects, getProjectById, createProject, getProjectsByCohortId, destroyProject } = require('../db');
+const { createUser, getUserByLogin, getUserById, updateUserToken, getAllCohorts, createCohort, getCohortById, updateCohortName, destroyCohort, createStudent, getAllStudents, getStudentById, getStudentsByCohortId, destroyStudent, getAllProjects, getProjectById, createProject, getProjectsByCohortId, destroyProject } = require('../db');
 const client = require('../db/client');
 
 describe('Database', () => {
@@ -8,21 +8,21 @@ describe('Database', () => {
     })
     describe('Users', () => {
         let userToCreateAndUpdate, queriedUser;
-        let userCredentials = {email: 'jest@gitcheck.com', accessToken: '1234abcd'};
-        describe('createUser({email, accessToken})', () => {
+        let userCredentials = {login: 'jest@gitcheck.com', accessToken: '1234abcd'};
+        describe('createUser({login, accessToken})', () => {
             beforeAll( async() => {
                 userToCreateAndUpdate = await createUser(userCredentials);
-                const {rows} = await client.query(`SELECT * FROM users where email=$1`, [userCredentials.email]);
+                const {rows} = await client.query(`SELECT * FROM users where login=$1`, [userCredentials.login]);
                 queriedUser = rows[0];
             })
             it('Creates the user', () => {
-                expect(userToCreateAndUpdate.email).toBe(userCredentials.email);
-                expect(queriedUser.email).toBe(userCredentials.email);
+                expect(userToCreateAndUpdate.login).toBe(userCredentials.login);
+                expect(queriedUser.login).toBe(userCredentials.login);
             })
         })
-        describe('getUserByEmail(email)', () => {
-            it('Retrieves the user by email', async () => {
-                const retrievedUser = await getUserByEmail(userCredentials.email);
+        describe('getUserByLogin(login)', () => {
+            it('Retrieves the user by login', async () => {
+                const retrievedUser = await getUserByLogin(userCredentials.login);
                 expect(retrievedUser).toStrictEqual(userToCreateAndUpdate);
             })
         })

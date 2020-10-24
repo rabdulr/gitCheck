@@ -21,7 +21,7 @@ async function createTables() {
         await client.query(`
             CREATE TABLE users(
                 id SERIAL PRIMARY KEY,
-                email VARCHAR(255) UNIQUE NOT NULL,
+                login VARCHAR(255) UNIQUE NOT NULL,
                 "accessToken" VARCHAR(255)
             );
 
@@ -59,8 +59,8 @@ async function createInitialUsers() {
     console.log('Starting to create users...');
     try {
         const usersToCreate = [
-            {email: 'admin@gitcheck.com', accessToken: '1234abcd'},
-            {email: 'red@gitcheck.com', accessToken: '1234abcd'}
+            {login: 'admin@gitcheck.com', accessToken: '1234abcd'},
+            {login: 'red@gitcheck.com', accessToken: '1234abcd'}
         ];
 
         const users = await Promise.all(usersToCreate.map(createUser));

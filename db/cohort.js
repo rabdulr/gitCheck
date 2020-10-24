@@ -67,11 +67,11 @@ async function destroyCohort(id) {
         await client.query(`
             DELETE FROM students
             WHERE "cohortId"=$1
-        `, [id])
+        `, [id]);
         await client.query(`
             DELETE FROM projects
             WHERE "cohortId"=$1
-        `, [id])
+        `, [id]);
         const {rows: [cohort]} = await client.query(`
             DELETE FROM cohorts
             WHERE id=$1

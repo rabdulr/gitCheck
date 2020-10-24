@@ -161,6 +161,10 @@ router.get('/callback', async (req, res, next) => {
                 accept: 'application/json'
             }
         });
+        console.log('access_token: ', access_token)
+        // Build out create/login user
+        const {data: gitHubUserInfo} = await axios.get('https://api.github.com/user', headers(access_token));
+        console.log('gitHubUserInfo: ', gitHubUserInfo)
         res.redirect(`/?access_token=${access_token}`)
     } catch (error) {
         throw error;
@@ -187,7 +191,6 @@ router.post('/updateList', async (req, res) => {
         const cohort = chunkedData.flat().filter(item => item !== undefined);
         // Calculate AVG Data for each project
         const returnedAvgData = projectList.map(project => projectAvg(cohort, project));
-        console.log('avg Data: ', returnedAvgData);
         console.log('Size of cohort file: ', sizeof(cohort))
         res.send({cohort, returnedAvgData})
     } catch (error) {
@@ -206,7 +209,6 @@ router.get('/getUsers', async (req, res) => {
         const cohort = chunkedData.flat().filter(item => item !== undefined);
         // Calculate AVG Data for each project
         const returnedAvgData = projectList.map(project => projectAvg(cohort, project));
-        console.log('avg Data: ', returnedAvgData);
         console.log('Size of cohort file: ', sizeof(cohort))
         res.send({cohort, returnedAvgData})
     } catch (error) {

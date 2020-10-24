@@ -4,24 +4,24 @@ const client = require('./client');
 
 // User functions, no delete option yet
 
-async function createUser({email, accessToken}) {
+async function createUser({login, accessToken}) {
     try {
         const {rows: [user]} = await client.query(`
-            INSERT INTO users(email, "accessToken") 
+            INSERT INTO users(login, "accessToken") 
             VALUES ($1, $2)
             RETURNING *;
-        `, [email, accessToken]);
+        `, [login, accessToken]);
         return user;
     } catch (error) {
         throw error;
     }
 }
 
-async function getUserByEmail(email) {
+async function getUserByLogin(login) {
     try {
         const {rows: [user]} = await client.query(`
-            SELECT * FROM users where email=$1
-        `, [email])
+            SELECT * FROM users WHERE login=$1
+        `, [login])
         return user;
     } catch (error) {
         throw error;
@@ -68,7 +68,7 @@ async function destroyStudent(studentId) {
 
 module.exports = {
     createUser,
-    getUserByEmail,
+    getUserByLogin,
     getUserById,
     updateUserToken,
     destroyStudent
