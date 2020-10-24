@@ -47,9 +47,23 @@ async function createProject({cohortId, startDate, name, isForked}) {
     }
 }
 
+async function destroyProject(projectId) {
+    try {
+        const {rows: [project]} = await client.query(`
+            DELETE FROM projects
+            WHERE id=$1
+            RETURNING *
+        `, [projectId]);
+        return project;
+    } catch (error) {
+        throw error
+    }
+}
+
 module.exports = {
     createProject,
     getAllProjects,
     getProjectById,
-    getProjectsByCohortId
+    getProjectsByCohortId,
+    destroyProject
 }

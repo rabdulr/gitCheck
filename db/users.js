@@ -53,9 +53,14 @@ async function updateUserToken({id, accessToken}) {
     }
 }
 
-async function destroyUser(id) {
+async function destroyStudent(studentId) {
     try {
-        console.log(id);
+        const {rows: [student]} = await client.query(`
+            DELETE FROM students
+            WHERE id=$1
+            RETURNING *
+        `, [studentId]);
+        return student;
     } catch (error) {
         throw error
     }
@@ -65,5 +70,6 @@ module.exports = {
     createUser,
     getUserByEmail,
     getUserById,
-    updateUserToken
+    updateUserToken,
+    destroyStudent
 }

@@ -48,9 +48,46 @@ async function getCohortByCreatorId(creatorId) {
     }
 }
 
+async function updateCohortName({id, name}) {
+    try {
+        const {rows: [cohort]} = await client.query(`
+            UPDATE cohorts
+            set name=$1
+            where id=$2
+            RETURNING *;
+        `, [name, id]);
+        return cohort
+    } catch (error) {
+        throw error;
+    }
+}
+
+async function destroyCohort(id) {
+    try {
+        await client.query(`
+            DELETE FROM students
+            WHERE "cohortId"=$1
+        `, [id])
+        await client.query(`
+            DELETE FROM projects
+            WHERE "cohortId"=$1
+        `, [id])
+        const {rows: [cohort]} = await client.query(`
+            DELETE FROM cohorts
+            WHERE id=$1
+            RETURNING *
+        `, [id]);
+        return cohort
+    } catch (error) {
+        throw error;
+    }
+}
+
 module.exports = {
     createCohort,
     getAllCohorts,
     getCohortById,
-    getCohortByCreatorId
+    getCohortByCreatorId,
+    updateCohortName,
+    destroyCohort
 }
