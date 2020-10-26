@@ -33,29 +33,37 @@ const App = () => {
     useEffect(() => {
         // attempting to clear accesss_token from URL
         // Come back later once functions work
-        const query = window.location.search.substring(1);
+        // const query = window.location.search.substring(1);
 
-        if (!userLogin && query) {
+        // if (!userLogin && query) {
 
-            const token = query.split('access_token=')[1];
-            const tokenStorage = localStorage.getItem('token');
+        //     const token = query.split('access_token=')[1];
+        //     const tokenStorage = localStorage.getItem('token');
 
-            if (tokenStorage) {
-                setToken(tokenStorage);
-            }
+        //     if (tokenStorage) {
+        //         setToken(tokenStorage);
+        //     }
 
-            if (token) {
-                setToken(token);
-                localStorage.setItem('token', token);
-            }
+        //     if (token) {
+        //         setToken(token);
+        //         localStorage.setItem('token', token);
+        //     }
 
-            setUserLogin(true);
-        }
-        getStudents();
+        //     setUserLogin(true);
+        // }
+        // getStudents();
+        getUser();
     }, [])
 
     const gitHubLogin = () => {
-        window.location.replace('https://github.com/login/oauth/authorize?client_id=2d9066f1cc065f4ad732&scope=repo,user&redirect_uri=http://localhost:3000/api/github/callback')
+        // window.location.replace('https://github.com/login/oauth/authorize?client_id=2d9066f1cc065f4ad732&scope=repo,user&redirect_uri=http://localhost:3000/api/github/callback');
+        window.location.replace('/api/github/login')
+    };
+
+    const getUser = async() => {
+        const {data: {user}} = await axios.get('/api/users');
+        setToken(user.accessToken)
+        return user
     }
 
     const logOut = () => {
@@ -158,7 +166,7 @@ const App = () => {
                             token ?
                                 <>
                                         <Route exact path="/">
-                                            <h3>Main Page Info</h3>
+                                            <h3>Welcome!!</h3>
                                         </Route>
                                         <Route path="/cohort/:id">
                                             <ClassInfo updateList={updateList} allCohorts={allCohorts} setAllCohorts={setAllCohorts} />

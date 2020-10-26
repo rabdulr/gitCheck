@@ -1,3 +1,4 @@
 module.exports = {
-    gitRouter: require('./github')
+    ...require('./github'),
+    ...require('./users')
 }

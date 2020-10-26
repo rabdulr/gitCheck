@@ -1,5 +1,5 @@
 const { rebuildDB } = require('../db/seedData');
-const { createUser, getUserByLogin, getUserById, updateUserToken, getAllCohorts, createCohort, getCohortById, updateCohortName, destroyCohort, createStudent, getAllStudents, getStudentById, getStudentsByCohortId, destroyStudent, getAllProjects, getProjectById, createProject, getProjectsByCohortId, destroyProject } = require('../db');
+const { createUser, getUserByUsername, getUserById, getUserByGitHubId, updateUserToken, getAllCohorts, createCohort, getCohortById, updateCohortName, destroyCohort, createStudent, getAllStudents, getStudentById, getStudentsByCohortId, destroyStudent, getAllProjects, getProjectById, createProject, getProjectsByCohortId, destroyProject } = require('../db');
 const client = require('../db/client');
 
 describe('Database', () => {
@@ -8,28 +8,34 @@ describe('Database', () => {
     })
     describe('Users', () => {
         let userToCreateAndUpdate, queriedUser;
-        let userCredentials = {login: 'jest@gitcheck.com', accessToken: '1234abcd'};
-        describe('createUser({login, accessToken})', () => {
+        let userCredentials = {username: 'jest@gitcheck.com', accessToken: '1234abcd', gitHubId: '6453'};
+        describe('createUser({username, accessToken, gitHubId})', () => {
             beforeAll( async() => {
                 userToCreateAndUpdate = await createUser(userCredentials);
-                const {rows} = await client.query(`SELECT * FROM users where login=$1`, [userCredentials.login]);
+                const {rows} = await client.query(`SELECT * FROM users where username=$1`, [userCredentials.username]);
                 queriedUser = rows[0];
             })
             it('Creates the user', () => {
-                expect(userToCreateAndUpdate.login).toBe(userCredentials.login);
-                expect(queriedUser.login).toBe(userCredentials.login);
+                expect(userToCreateAndUpdate.username).toBe(userCredentials.username);
+                expect(queriedUser.username).toBe(userCredentials.username);
             })
         })
-        describe('getUserByLogin(login)', () => {
-            it('Retrieves the user by login', async () => {
-                const retrievedUser = await getUserByLogin(userCredentials.login);
+        describe('getUserByusername(username)', () => {
+            it('Retrieves the user by username', async () => {
+                const retrievedUser = await getUserByUsername(userCredentials.username);
                 expect(retrievedUser).toStrictEqual(userToCreateAndUpdate);
             })
         })
         describe('getUserById(id)', () => {
-            it('Retries the user by id', async () => {
+            it('Retrieves the user by id', async () => {
                 const retrievedUser = await getUserById(userToCreateAndUpdate.id);
                 expect(retrievedUser).toBeTruthy()
+            })
+        })
+        describe('getUserByGitHubId(id)', () => {
+            it('Retrieves the user by GitHub id', async () => {
+                const retrievedUser = await getUserByGitHubId(userToCreateAndUpdate.gitHubId);
+                expect(retrievedUser.gitHubId).toBe(userToCreateAndUpdate.gitHubId)
             })
         })
         describe('updateUserToken({id, accessToken})', () => {

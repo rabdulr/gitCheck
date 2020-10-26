@@ -1,4 +1,4 @@
-const router = require('express').Router();
+const gitHub = require('express').Router();
 const {STUDENT_LIST, CLIENT_ID, CLIENT_SECRET, PROJECTS} = process.env;
 const COHORT = JSON.parse(STUDENT_LIST);
 const {timedPromise, projectAvg, chunkStudentList} = require('../functions')
@@ -6,6 +6,9 @@ const axios = require('axios');
 const sizeof = require('object-sizeof')
 const redis = require('redis');
 const redisCLient = redis.createClient();
+const passport = require('passport');
+require('./passport-setup');
+
 
 // Project List for testing
 const seedProjects = JSON.parse(PROJECTS)
@@ -18,11 +21,15 @@ const seedProjects = JSON.parse(PROJECTS)
 const headers = (token) => {
     const header = {
         headers: {
-            'Authorization': `token ${token}`
+            Authorization: `token ${token}`
         }
     };
     return header;
 };
+
+// Passport
+
+gitHub.get('/login', passport.authenticate('github', { scope: ['user', 'profile']}));
 
 const startGetUser = async (token, student, projects) => {
     console.log(`STARTING PROCESS: ${student}`)
@@ -151,27 +158,41 @@ const getUserInfo = async (token, username, projects) => {
 };
 
 // Server Calls
-router.get('/callback', async (req, res, next) => {
-    try {
-        const requestToken = req.query.code
-        const {data: {access_token}} = await axios({
-            method: 'post',
-            url: `https://github.com/login/oauth/access_token?client_id=${CLIENT_ID}&client_secret=${CLIENT_SECRET}&code=${requestToken}`,
-            headers: {
-                accept: 'application/json'
-            }
-        });
-        console.log('access_token: ', access_token)
-        // Build out create/login user
-        const {data: gitHubUserInfo} = await axios.get('https://api.github.com/user', headers(access_token));
-        console.log('gitHubUserInfo: ', gitHubUserInfo)
-        res.redirect(`/?access_token=${access_token}`)
-    } catch (error) {
-        throw error;
-    }
-})
+// router.get('/callback', async (req, res, next) => {
+//     try {
+//         const requestToken = req.query.code
+//         const {data: {access_token}} = await axios({
+//             method: 'post',
+//             url: `https://github.com/login/oauth/access_token?client_id=${CLIENT_ID}&client_secret=${CLIENT_SECRET}&code=${requestToken}`,
+//             headers: {
+//                 accept: 'application/json'
+//             }
+//         });
+//         console.log('access_token: ', access_token)
+//         // Build out create/login user
+//         const {data: gitHubUserInfo} = await axios.get('https://api.github.com/user', headers(access_token));
+//         console.log('gitHubUserInfo: ', gitHubUserInfo)
+//         res.redirect(`/?access_token=${access_token}`)
+//     } catch (error) {
+//         throw error;
+//     }
+// })
 
-router.get('/getLimit', async (req, res, next) => {
+gitHub.get('/callback', passport.authenticate('github', {failureRedirect: '/failed'}),
+    function(req, res) {
+        res.redirect(`/`)
+});
+
+gitHub.get('/failed', (req, res) => {
+    res.send({message: 'failed login'})
+});
+
+gitHub.get('/good', (req, res) => {
+    console.log('req user: ', req.user)
+    res.send({message: 'Successful login'})
+});
+
+gitHub.get('/getLimit', async (req, res, next) => {
     const {token} = req.query
     try {
         const limit = await getLimit(token);
@@ -181,7 +202,7 @@ router.get('/getLimit', async (req, res, next) => {
     }
 });
 
-router.post('/updateList', async (req, res) => {
+gitHub.post('/updateList', async (req, res) => {
     const {usersList, projectList} = req.body;
     const {token} = req.query;
     try {
@@ -198,7 +219,7 @@ router.post('/updateList', async (req, res) => {
     }
 });
 
-router.get('/getUsers', async (req, res) => {
+gitHub.get('/getUsers', async (req, res) => {
     const {token} = req.query;
     // Function is reading seed data from .env
     try {
@@ -216,7 +237,7 @@ router.get('/getUsers', async (req, res) => {
     }
 });
 
-router.post('/getUsers/:username', cache, async (req, res) => {
+gitHub.post('/getUsers/:username', cache, async (req, res) => {
     const {username} = req.params;
     const {token} = req.query;
     const {projectList} = req.body
@@ -229,7 +250,7 @@ router.post('/getUsers/:username', cache, async (req, res) => {
 });
 
 // Breaking down repo calls
-router.get('/getUsers/:username/repo', (req, res) => {
+gitHub.get('/getUsers/:username/repo', (req, res) => {
     const {username} = req.params;
     try {
         redisCLient.get(`${username}.repo`, (error, cachedData) => {
@@ -262,5 +283,5 @@ function cache(req, res, next) {
 }
 
 module.exports = {
-    router
+    gitHub
 }
