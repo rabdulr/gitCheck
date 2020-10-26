@@ -16,16 +16,16 @@ const CreateCohort = ({allCohorts, setAllCohorts, cohortClass, updateList, setKe
     const [projectList, setProjectList] = useState([]);
     const [projectName, setProjectName] = useState('');
     const [dueDate, setDueDate] = useState('');
+    const [username, setUsername] = useState('');
+    const [studentsToDestroy, setStudentsToDestroy] = useState([]);
+    const [projectsToDestroy, setProjectsToDestroy] = useState([]);
 
     useEffect(() => {
         if (cohortClass) {
-            const name = cohortClass.name
-            const {projects, students} = cohortClass;
+            const {projects, students, name} = cohortClass;
+            console.log('name: ', name)
             // Need to redo this whole bit down here
-            const newList = students.map(student => {
-                return {value: student, label: student}
-            });
-            setStudentListArr(newList)
+            setStudentListArr(students)
             setCohortName(name);
             setProjectList(projects);
         }
@@ -34,7 +34,7 @@ const CreateCohort = ({allCohorts, setAllCohorts, cohortClass, updateList, setKe
     const addProject = () => {
         const newProject = {
             name: projectName,
-            date: dueDate
+            startDate: dueDate
         }
         setProjectList([...projectList, newProject]);
         setProjectName('');
@@ -42,38 +42,59 @@ const CreateCohort = ({allCohorts, setAllCohorts, cohortClass, updateList, setKe
     };
 
     const removeProject = (removedIdx) => {
+        if (cohortClass) {
+            setProjectsToDestroy([...projectsToDestroy, projectList[removedIdx]])
+        }
         const updateList = projectList.filter((_, idx) => idx !== removedIdx);
         setProjectList(updateList);
+    };
+
+    const addUsername = () => {
+        setStudentListArr([...studentListArr, username]);
+        setUsername('')
+    }
+    
+    const removeUsername = (removedIdx) => {
+        if (cohortClass) {
+            setStudentsToDestroy([...studentsToDestroy, studentListArr[removedIdx]])
+        }
+        const updatedStudentList = studentListArr.filter((_, idx) => idx !== removedIdx);
+        setStudentListArr(updatedStudentList)
     }
 
     const createCohort = async (ev) => {
         ev.preventDefault();
-        const {data: newCohort} = await axios.post('/api/cohorts/createCohort', {cohortName});
-        const studentsList = studentListArr.map(student => student.value);
-        const {data: students} = await axios.post('/api/students/createStudents', {newCohort, studentsList});
-        const {data: projects} = await axios.post('/api/projects/createProjects', {newCohort, projectList});
-        console.log('projects: ', projects)
-        newCohort.students = students;
-        newCohort.projects = projects;
+        if (cohortClass) {
+            // Need to send update of list/items that were updated to DB
+            // Run an update on the items
+            console.log('students to destroy: ', studentsToDestroy);
+            console.log('projects to destroy: ', projectsToDestroy)
+            const studentsRes = await axios.delete('/api/students/deleteBatch', {data: {students: studentsToDestroy}});
+            const projectsRes = await axios.delete('/api/projects/deleteBatch', {data: {projects: projectsToDestroy}});
+            console.log('response from delete: ', studentsRes, projectsRes)
 
-        // if (cohortClass) {
-        //     // Need to send update of list/items that were updated to DB
-        //     // Run an update on the items
-        //     const {returnedAvgData, cohort} = await updateList(students, projectList);
-        //     newCohort.id = cohortClass.id
-        //     newCohort.value.cohortData = cohort;
-        //     newCohort.value.cohortAvg = returnedAvgData;
-        //     console.log('new Cohort: ', newCohort)
-        //     setAllCohorts(allCohorts.map(cohort => cohort.id === newCohort.id ? newCohort : cohort));
-        //     setCohortClass(newCohort)
-        //     setKey('classData');
-        // } else {
-        //     // Create DB entries
+            // const {returnedAvgData, cohort} = await updateList(students, projectList);
+            // newCohort.id = cohortClass.id
+            // newCohort.value.cohortData = cohort;
+            // newCohort.value.cohortAvg = returnedAvgData;
+            // console.log('new Cohort: ', newCohort)
+            // setAllCohorts(allCohorts.map(cohort => cohort.id === newCohort.id ? newCohort : cohort));
+            // setCohortClass(newCohort)
+            // setKey('classData');
+        } else {
+            // Create DB entries
+            console.log('studentList: ', studentListArr)
+            const {data: newCohort} = await axios.post('/api/cohorts/createCohort', {cohortName});
+            const {data: students} = await axios.post('/api/students/createStudents', {newCohort, studentListArr});
+            const {data: projects} = await axios.post('/api/projects/createProjects', {newCohort, projectList});
+            console.log('projects: ', projects)
+            newCohort.students = students;
+            newCohort.projects = projects;
             setAllCohorts([...allCohorts, newCohort]);
             setCohortName('')
             setStudentListArr([]);
             setProjectList([]);
-        // }
+        }
     };
 
     return (
@@ -112,7 +133,7 @@ const CreateCohort = ({allCohorts, setAllCohorts, cohortClass, updateList, setKe
                                             projectList.map((project, idx) => {
                                                 return (
                                                 <li key={project.name + project.date}>
-                                                    Project: {project.name}, Start Date: {project.date} <Button variant="danger" onClick={() => removeProject(idx)}>-</Button>
+                                                    Project: {project.name}, Start Date: {project.startDate} <Button variant="danger" onClick={() => removeProject(idx)}>-</Button>
                                                 </li>
                                             )}) : <div>No projects set</div>
                                         }
@@ -120,20 +141,26 @@ const CreateCohort = ({allCohorts, setAllCohorts, cohortClass, updateList, setKe
                                 </Row>
                                 <hr />
                                 <Form.Group as={Row} controlId='formStudenList'>
-                                    <Form.Label column>Student List</Form.Label>
+                                    <Form.Label column>Add Student</Form.Label>
                                     <Col sm="10">
-                                    <Select
-                                        multi
-                                        create
-                                        options={studentListArr}
-                                        onCreateNew={item => setStudentListArr([...studentListArr, item])}
-                                        values={studentListArr}
-                                        backspaceDelete={true}
-                                        onChange={values => setStudentListArr(values)}
-                                        placeholder="Add GitHub Usernames"
-                                        style={{width: '100%'}} />
+                                        <Form.Control type='text' placeholder='Github username' value={username} onChange={ev => setUsername(ev.target.value)} 
+                                            onKeyPress={ev => {
+                                                if (ev.key === 'Enter') addUsername();
+                                        }} />
                                     </Col>
                                 </Form.Group>
+                                <Row>
+                                    {
+                                        studentListArr.map((student, idx) => {
+                                            return(
+                                                <li key={idx}>
+                                                    {student.gitHubUser || student} <Button variant="danger" onClick={() => removeUsername(idx)}>-</Button>
+                                                </li>
+                                            )
+                                        })
+                                    }
+                                    <hr />
+                                </Row>
                                 <Button variant="primary" onClick={ev => createCohort(ev)}>{cohortClass ? `Update Cohort` : `Create Cohort`}</Button>{' '}
                                 {
                                     cohortClass ? <Button variant="primary" onClick={() => setKey('classData')}>Cancel</Button> : <Button variant="primary" as={Link} to={'/'}>Cancel</Button>

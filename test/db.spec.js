@@ -1,5 +1,5 @@
 const { rebuildDB } = require('../db/seedData');
-const { createUser, getUserByUsername, getUserById, getUserByGitHubId, updateUserToken, getAllCohorts, createCohort, getCohortById, updateCohortName, destroyCohort, createStudent, getAllStudents, getStudentById, getStudentsByCohortId, destroyStudent, getAllProjects, getProjectById, createProject, getProjectsByCohortId, destroyProject } = require('../db');
+const { createUser, getUserByUsername, getUserById, getUserByGitHubId, updateUserToken, getAllCohorts, createCohort, getCohortById, updateCohortName, destroyCohort, createStudent, getAllStudents, getStudentById, getStudentsByCohortId, destroyStudentById, getAllProjects, getProjectById, createProject, getProjectsByCohortId, destroyProject, destroyStudentById } = require('../db');
 const client = require('../db/client');
 
 describe('Database', () => {
@@ -114,7 +114,7 @@ describe('Database', () => {
         })
         describe('destroyCohort(id)', () => {
             it('Destroys a user by user ID', async() => {
-                await destroyStudent(student.id);
+                await destroyStudentById(student.id);
                 const {rows: [destroyedStudent]} = await client.query(`
                     SELECT * FROM projects
                     WHERE id=$1

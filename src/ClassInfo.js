@@ -52,9 +52,9 @@ const ClassInfo = ({updateList, allCohorts, setAllCohorts}) => {
                 <Tab eventKey="classStudentView" title="Student List">
                     <ClassStudentView avgData={cohortClass.cohortAvg} cohortData={cohortClass.cohortData} />
                 </Tab>
-                {/* <Tab eventKey="classEdit" title="Edit Class">
+                <Tab eventKey="classEdit" title="Edit Class">
                     <CreateCohort allCohorts={allCohorts} setAllCohorts={setAllCohorts} cohortClass={cohortClass} setKey={setKey} updateList={updateList} setCohortClass={setCohortClass} />
-                </Tab> */}
+                </Tab>
             </Tabs> 
             : <Spinner animation='border' />
         }

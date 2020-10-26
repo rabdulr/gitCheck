@@ -48,9 +48,23 @@ async function getStudentsByCohortId(cohortId) {
     }
 }
 
+async function destroyStudentById(id) {
+    try {
+        const {rows: student} = await client.query(`
+            DELETE FROM students
+            WHERE id=$1
+            RETURNING *
+        `, [id]);
+        return student;
+    } catch (error) {
+        throw error
+    }
+}
+
 module.exports = {
     createStudent,
     getAllStudents,
     getStudentById,
-    getStudentsByCohortId
+    getStudentsByCohortId,
+    destroyStudentById
 }
