@@ -24,19 +24,23 @@ server.get('/', (req, res, next) => res.sendFile(path.join(__dirname, 'index.htm
 server.use(passport.initialize());
 server.use(passport.session())
 
-server.get('/auth/github/login', passport.authenticate('github', { scope: ['user', 'profile']}));
+server.get('/auth/github/login', passport.authenticate('github', { scope: ['repo', 'user']}));
 server.get('/auth/github/callback', passport.authenticate('github', {failureRedirect: '/'}),
     function(req, res) {
         res.redirect(`/`)
 });
+
 server.get('/auth/github/logout', (req, res) => {
     req.session = null;
     req.logout();
     res.redirect('/')
 })
 
-server.use('/api', api)
+server.use('/api', api);
 
+server.use((err, req, res, next) => {
+    res.send({message: err.message})
+})
 module.exports = {
     server
 }

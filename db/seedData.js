@@ -45,8 +45,8 @@ async function createTables() {
                 "cohortId" INTEGER REFERENCES cohorts(id),
                 name VARCHAR(255) NOT NULL,
                 "startDate" DATE NOT NULL,
-                "isForked" BOOLEAN NOT NULL
-            )
+                "isForked" BOOLEAN DEFAULT TRUE
+            );
         `);
         console.log('Finished building tables...')
     } catch (error) {
@@ -113,8 +113,8 @@ async function createInitialProjects() {
     console.log('Starting to create initial projects...');
     try {
         const projectsToCreate = [
-            {cohortId: 1, name: 'UNIV_Phenomena_Starter', startDate: '09/28/20', isForked: true},
-            {cohortId: 2, name: 'UNIV_FitnessTrackr_Starter', startDate: '10/05/20', isForked: true}
+            {cohortId: 1, name: 'UNIV_Phenomena_Starter', startDate: '09/28/20'},
+            {cohortId: 2, name: 'UNIV_FitnessTrackr_Starter', startDate: '10/05/20'}
         ];
         const projects = await Promise.all(projectsToCreate.map(createProject))
         console.log('Projects created: ');

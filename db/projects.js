@@ -34,13 +34,13 @@ async function getProjectsByCohortId(cohortId) {
         throw error;
     }
 }
-async function createProject({cohortId, startDate, name, isForked}) {
+async function createProject({cohortId, startDate, name}) {
     try {
         const {rows: [project]} = await client.query(`
-            INSERT INTO projects("cohortId", "startDate", name, "isForked")
-            VALUES ($1, $2, $3, $4)
+            INSERT INTO projects("cohortId", "startDate", name)
+            VALUES ($1, $2, $3)
             RETURNING *
-        `, [cohortId, startDate, name, isForked]);
+        `, [cohortId, startDate, name]);
         return project
     } catch (error) {
         throw error

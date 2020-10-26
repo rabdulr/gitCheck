@@ -6,7 +6,8 @@ import Card from 'react-bootstrap/Card';
 import InputGroup from 'react-bootstrap/InputGroup';
 import Form from 'react-bootstrap/Form';
 import Button from 'react-bootstrap/Button';
-import { Link } from "react-router-dom";
+import { Link } from 'react-router-dom';
+import axios from 'axios';
 
 const CreateCohort = ({allCohorts, setAllCohorts, cohortClass, updateList, setKey, setCohortClass}) => {
 
@@ -18,8 +19,9 @@ const CreateCohort = ({allCohorts, setAllCohorts, cohortClass, updateList, setKe
 
     useEffect(() => {
         if (cohortClass) {
-            const name = cohortClass.cohort
-            const {value: {projects, students}} = cohortClass;
+            const name = cohortClass.name
+            const {projects, students} = cohortClass;
+            // Need to redo this whole bit down here
             const newList = students.map(student => {
                 return {value: student, label: student}
             });
@@ -46,35 +48,32 @@ const CreateCohort = ({allCohorts, setAllCohorts, cohortClass, updateList, setKe
 
     const createCohort = async (ev) => {
         ev.preventDefault();
-        const students = studentListArr.map(student => student.value);
-        const value = {
-            students,
-            projects: projectList,
-            cohortData: [],
-            cohortAvg: []
-        };
-        const newCohort = {
-            cohort: cohortName,
-            value
-        };
-        if (cohortClass) {
-            // Need to send update of list/items that were updated to DB
-            // Run an update on the items
-            const {returnedAvgData, cohort} = await updateList(students, projectList);
-            newCohort.id = cohortClass.id
-            newCohort.value.cohortData = cohort;
-            newCohort.value.cohortAvg = returnedAvgData;
-            console.log('new Cohort: ', newCohort)
-            setAllCohorts(allCohorts.map(cohort => cohort.id === newCohort.id ? newCohort : cohort));
-            setCohortClass(newCohort)
-            setKey('classData');
-        } else {
-            // Create DB entries
+        const {data: newCohort} = await axios.post('/api/cohorts/createCohort', {cohortName});
+        const studentsList = studentListArr.map(student => student.value);
+        const {data: students} = await axios.post('/api/students/createStudents', {newCohort, studentsList});
+        const {data: projects} = await axios.post('/api/projects/createProjects', {newCohort, projectList});
+        console.log('projects: ', projects)
+        newCohort.students = students;
+        newCohort.projects = projects;
+
+        // if (cohortClass) {
+        //     // Need to send update of list/items that were updated to DB
+        //     // Run an update on the items
+        //     const {returnedAvgData, cohort} = await updateList(students, projectList);
+        //     newCohort.id = cohortClass.id
+        //     newCohort.value.cohortData = cohort;
+        //     newCohort.value.cohortAvg = returnedAvgData;
+        //     console.log('new Cohort: ', newCohort)
+        //     setAllCohorts(allCohorts.map(cohort => cohort.id === newCohort.id ? newCohort : cohort));
+        //     setCohortClass(newCohort)
+        //     setKey('classData');
+        // } else {
+        //     // Create DB entries
             setAllCohorts([...allCohorts, newCohort]);
             setCohortName('')
             setStudentListArr([]);
             setProjectList([]);
-        }
+        // }
     };
 
     return (

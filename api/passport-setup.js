@@ -1,6 +1,6 @@
 const passport = require('passport');
 const GitHubStrategy = require('passport-github').Strategy;
-const {getUserByGitHubId, createUser} = require('../db')
+const {getUserByGitHubId, createUser, updateUserToken} = require('../db')
 
 passport.serializeUser(function(user, done) {
   done(null, user.gitHubId);
@@ -23,8 +23,11 @@ passport.use(new GitHubStrategy({
   async function(accessToken, refreshToken, profile, done) {
     try {
       const user = await getUserByGitHubId(profile.id);
+      console.log('accessToken: ', accessToken)
       if (user) {
-        done(null, user)
+        const {id} = user
+        const updatedUser = await updateUserToken({id, accessToken})
+        done(null, updatedUser)
       } else {
         const newUser = await createUser({username: profile.username, gitHubId: profile.id, accessToken})
         done(null, newUser)

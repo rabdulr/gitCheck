@@ -6,9 +6,7 @@ const axios = require('axios');
 const sizeof = require('object-sizeof')
 const redis = require('redis');
 const redisCLient = redis.createClient();
-const passport = require('passport');
-
-
+const {isLoggedIn} = require('./utils')
 
 // Project List for testing
 const seedProjects = JSON.parse(PROJECTS)
@@ -72,9 +70,9 @@ const returnUserData = (chunkList, projectList, token) => {
     try {
         let delayTime = 0;
         return Promise.all(chunkList.map(set => {
-            return Promise.all(set.map(async (username) => {
+            return Promise.all(set.map(async (studentData) => {
                 delayTime += 50
-                const {data: {student}} = await timedPromise(delayTime, axios.post(`http://localhost:3000/api/github/getUsers/${username}`, {projectList}, {params: {token}}))
+                const {data: {student}} = await timedPromise(delayTime, axios.post(`http://localhost:3000/api/github/getUsers/${studentData.gitHubUser}`, {projectList}, {params: {token}}))
                 return student;
             }))
         }))
@@ -88,57 +86,67 @@ const getUserInfo = async (token, username, projects) => {
         console.log(`GETTING info for ${username}`)
         const URL = `https://api.github.com/users/${username}`;
         const PRIVATE_URL = `https://api.github.com/repos/${username}`
+        console.log('token: ', token)
 
         const {data: user} = await axios(`${URL}`, headers(token));
         const repos = await Promise.all(projects.map(async project => {
             // return project;
-            const {data} = await axios(`${PRIVATE_URL}/${project.name}`, headers(token));
-            data.projectStart = new Date(project.date)
-            return data
+            try {
+                const {data} = await axios(`${PRIVATE_URL}/${project.name}`, headers(token));
+                data.projectStart = new Date(project.startDate)
+                return data
+            } catch (error) {
+                throw error
+            }
+
         }));
         await Promise.all(repos.map(async (repo) => {
             // Since repo is currently forked, we are getting exact matches
-            repo.ignore = false;
-
-            delete repo.owner;
-
-            const forkInsert = {}
-            const commit = {
-                name: 'fork',
-                author: {
-                    name: 'Fork',
-                    date: repo.created_at
+            try {
+                repo.ignore = false;
+    
+                delete repo.owner;
+    
+                const forkInsert = {}
+                const commit = {
+                    name: 'fork',
+                    author: {
+                        name: 'Fork',
+                        date: repo.created_at
+                    }
+                };
+    
+                forkInsert.commit = commit;
+    
+                const commitList = [];
+                console.log(`STARTING REPO ${repo.name} for ${username}`)
+                const response = await axios(`${repo.url}/commits/master`, headers(token)).catch(err => err.response.status);
+                if (response === 409) {
+                    repo.commit_counts = commitList;
+                    return repo;
                 }
-            };
-
-            forkInsert.commit = commit;
-
-            const commitList = [];
-            console.log(`STARTING REPO ${repo.name} for ${username}`)
-            const response = await axios(`${repo.url}/commits/master`, headers(token)).catch(err => err.response.status);
-            if (response === 409) {
-                repo.commit_counts = commitList;
-                return repo;
+                const {data: commitMaster} = response;
+                delete commitMaster.author;
+                delete commitMaster.owner;
+    
+                commitList.push(commitMaster);
+    
+                if (commitMaster.parents.length > 0) {
+                    // Recursive function
+                    await Promise.all(
+                        commitMaster.parents.map(async (sha) => {
+                                await createCommitList(token, sha, username, commitList, repo.projectStart)
+                        })
+                    ).catch(err => console.log(err))
+                }
+                commitList.push(forkInsert);
+                repo.commit_counts = await commitList;
+                // acc.push(repo);
+                console.log(`ENDING REPO ${repo.name} for ${username}`)
+                return repo
+            } catch (error) {
+                throw error
             }
-            const {data: commitMaster} = response;
-            delete commitMaster.author;
-            delete commitMaster.owner;
-
-            commitList.push(commitMaster);
-
-            if (commitMaster.parents.length > 0) {
-                // Recursive function
-                await Promise.all(
-                    commitMaster.parents.map(async (sha) => {
-                            await createCommitList(token, sha, username, commitList, repo.projectStart)
-                    })
-                ).catch(err => console.log(err))
-            }
-            commitList.push(forkInsert);
-            repo.commit_counts = await commitList;
-            // acc.push(repo);
-            console.log(`ENDING REPO ${repo.name} for ${username}`)
-            return repo
         }));
 
         // run function to filter out repos with .ignore
@@ -210,17 +218,17 @@ gitHub.post('/updateList', async (req, res) => {
     }
 });
 
-gitHub.get('/getUsers', async (req, res) => {
-    const {token} = req.query;
+gitHub.post('/getUsers', isLoggedIn, async (req, res) => {
+    const {accessToken} = req.user
+    const {students, projects} = req.body
     // Function is reading seed data from .env
     try {
-        console.log(COHORT)
-        const chunkList = chunkStudentList(COHORT, 2);
-        const projectList = seedProjects
-        const chunkedData = await returnUserData(chunkList, projectList, token);
+        console.log(students)
+        const chunkList = chunkStudentList(students, 2);
+        const chunkedData = await returnUserData(chunkList, projects, accessToken);
         const cohort = chunkedData.flat().filter(item => item !== undefined);
         // Calculate AVG Data for each project
-        const returnedAvgData = projectList.map(project => projectAvg(cohort, project));
+        const returnedAvgData = projects.map(project => projectAvg(cohort, project));
         console.log('Size of cohort file: ', sizeof(cohort))
         res.send({cohort, returnedAvgData})
     } catch (error) {

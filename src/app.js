@@ -21,7 +21,6 @@ import ClassInfo from './ClassInfo';
 
 const App = () => {
     const [token, setToken] = useState(window.localStorage.getItem('token'));
-    const [userLogin, setUserLogin] = useState(false)
     const [student, setStudent] = useState(JSON.parse(window.localStorage.getItem('student')));
     // const [cohort, setCohort] = useState(JSON.parse(window.localStorage.getItem('cohort')));
     const [limits, setLimits] = useState({});
@@ -32,11 +31,18 @@ const App = () => {
     const getUser = async() => {
         const {data: {user}} = await axios.get('/api/users');
         setToken(user.accessToken)
-        return user
+    }
+
+    const getAllCohorts = async() => {
+        const {data: cohortsReturn} = await axios.get('/api/cohorts/getAllCohorts');
+        setAllCohorts(cohortsReturn)
     }
 
     useEffect(() => {
-        if (!token) getUser();
+        if (!token) {
+            getUser();
+            getAllCohorts();
+        }
     }, [])
 
     const gitHubLogin = () => {
@@ -114,7 +120,7 @@ const App = () => {
                                 <DropdownButton id="dropdown-basic-button" title="Select Cohort" variant="secondary">
                                     {
                                         allCohorts.length > 0 ?
-                                            allCohorts.map(newClass => <Dropdown.Item as={Link} to={`/cohort/${newClass.id}`}>{newClass.cohort}</Dropdown.Item>)
+                                            allCohorts.map(newClass => <Dropdown.Item as={Link} to={`/cohort/${newClass.id}`}>{newClass.name}</Dropdown.Item>)
                                             : <></>
                                     }
                                     {/* <Dropdown.Item href="#/cohort">Cohort</Dropdown.Item> */}
