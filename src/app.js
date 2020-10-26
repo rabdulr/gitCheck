@@ -29,48 +29,22 @@ const App = () => {
 
     const [allCohorts, setAllCohorts] = useState([]);
     
-
-    useEffect(() => {
-        // attempting to clear accesss_token from URL
-        // Come back later once functions work
-        // const query = window.location.search.substring(1);
-
-        // if (!userLogin && query) {
-
-        //     const token = query.split('access_token=')[1];
-        //     const tokenStorage = localStorage.getItem('token');
-
-        //     if (tokenStorage) {
-        //         setToken(tokenStorage);
-        //     }
-
-        //     if (token) {
-        //         setToken(token);
-        //         localStorage.setItem('token', token);
-        //     }
-
-        //     setUserLogin(true);
-        // }
-        // getStudents();
-        getUser();
-    }, [])
-
-    const gitHubLogin = () => {
-        // window.location.replace('https://github.com/login/oauth/authorize?client_id=2d9066f1cc065f4ad732&scope=repo,user&redirect_uri=http://localhost:3000/api/github/callback');
-        window.location.replace('/api/github/login')
-    };
-
     const getUser = async() => {
         const {data: {user}} = await axios.get('/api/users');
         setToken(user.accessToken)
         return user
     }
 
+    useEffect(() => {
+        if (!token) getUser();
+    }, [])
+
+    const gitHubLogin = () => {
+        window.location.replace('/auth/github/login')
+    };
+
     const logOut = () => {
-        setToken('');
-        localStorage.clear();
-        setUserLogin(false)
-        window.location = '/'
+        window.location.replace('/auth/github/logout')
     }
 
     const getStudent = async () => {
@@ -174,7 +148,7 @@ const App = () => {
                                         <Route path="/new-cohort">
                                             <CreateCohort allCohorts={allCohorts} setAllCohorts={setAllCohorts} updateList={updateList} />
                                         </Route>
-                                </> : <></>
+                                </> : <><h3>You are not logged</h3></>
                         }
                     </Col>
                 </Row>

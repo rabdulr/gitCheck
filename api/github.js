@@ -7,7 +7,7 @@ const sizeof = require('object-sizeof')
 const redis = require('redis');
 const redisCLient = redis.createClient();
 const passport = require('passport');
-require('./passport-setup');
+
 
 
 // Project List for testing
@@ -26,10 +26,6 @@ const headers = (token) => {
     };
     return header;
 };
-
-// Passport
-
-gitHub.get('/login', passport.authenticate('github', { scope: ['user', 'profile']}));
 
 const startGetUser = async (token, student, projects) => {
     console.log(`STARTING PROCESS: ${student}`)
@@ -178,11 +174,6 @@ const getUserInfo = async (token, username, projects) => {
 //     }
 // })
 
-gitHub.get('/callback', passport.authenticate('github', {failureRedirect: '/failed'}),
-    function(req, res) {
-        res.redirect(`/`)
-});
-
 gitHub.get('/failed', (req, res) => {
     res.send({message: 'failed login'})
 });
@@ -282,6 +273,4 @@ function cache(req, res, next) {
     })
 }
 
-module.exports = {
-    gitHub
-}
+module.exports = gitHub
