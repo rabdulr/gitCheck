@@ -2,7 +2,6 @@ import React, {useEffect, useState} from 'react';
 import Row from 'react-bootstrap/Row';
 import { LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer} from 'recharts';
 import Spinner from 'react-bootstrap/Spinner';
-import Select from 'react-dropdown-select';
 import Col from 'react-bootstrap/Col';
 
 const ClassData = ({avgData}) => {

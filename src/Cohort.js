@@ -9,6 +9,7 @@ import Button from 'react-bootstrap/Button';
 import { Link, useHistory } from 'react-router-dom';
 import axios from 'axios';
 import Spinner from 'react-bootstrap/Spinner';
+import DatePicker from "react-datepicker";
 
 const Cohort = ({allCohorts, setAllCohorts, cohortClass, updateList, setKey, setCohortClass}) => {
 
@@ -16,7 +17,7 @@ const Cohort = ({allCohorts, setAllCohorts, cohortClass, updateList, setKey, set
     const [studentListArr, setStudentListArr] = useState([]);
     const [projectList, setProjectList] = useState([]);
     const [projectName, setProjectName] = useState('');
-    const [dueDate, setDueDate] = useState('');
+    const [startDate, setStartDate] = useState(new Date());
     const [username, setUsername] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
@@ -35,7 +36,7 @@ const Cohort = ({allCohorts, setAllCohorts, cohortClass, updateList, setKey, set
     const addProject = async () => {
         const newProject = {
             name: projectName,
-            startDate: dueDate
+            startDate: startDate.toLocaleDateString()
         }
         try {
             if (cohortClass) {
@@ -43,11 +44,11 @@ const Cohort = ({allCohorts, setAllCohorts, cohortClass, updateList, setKey, set
                 const {data: project} = await axios.post('/api/projects/createProject', {cohortId, newProject});
                 setProjectList([...projectList, project]);
                 setProjectName('');
-                setDueDate('');
+                setStartDate('');
             } else {
                 setProjectList([...projectList, newProject]);
                 setProjectName('');
-                setDueDate('');
+                setStartDate('');
             }
         } catch (error) {
             throw error
@@ -117,8 +118,13 @@ const Cohort = ({allCohorts, setAllCohorts, cohortClass, updateList, setKey, set
                 const {id:cohortId} = newCohort;
                 const {data: students} = await axios.post('/api/students/createStudents', {cohortId, studentList: studentListArr});
                 const {data: projects} = await axios.post('/api/projects/createProjects', {cohortId, projectList: projectList});
-                newCohort.students = students || [];
-                newCohort.projects = projects || [];
+                newCohort.students = students;
+                newCohort.projects = projects;
+                if (students.length > 0 && projects.length > 0) {
+                    const {returnedAvgData, cohort} = await updateList(students, projects);
+                    newCohort.cohortData = cohort;
+                    newCohort.cohortAvg = returnedAvgData;
+                }
                 setAllCohorts([...allCohorts, newCohort]);
                 setCohortName('')
                 setStudentListArr([]);
@@ -140,7 +146,16 @@ const Cohort = ({allCohorts, setAllCohorts, cohortClass, updateList, setKey, set
                     loading ? <Spinner animation='border' /> :
                     <Card style={{width: '100%'}}>
                         <Card.Body>
-                            <Card.Title>{cohortClass ? 'Update Cohort' : 'Create New Cohort'}</Card.Title>
+                            <Card.Title>
+                                <Row>
+                                    <Col style={{display: 'flex', justifyContent: 'flex-start'}}>
+                                        {cohortClass ? 'Update Cohort' : 'Create New Cohort'}
+                                    </Col>
+                                    <Col style={{display: 'flex', justifyContent: 'flex-end'}}>
+                                        {cohortClass ? <Button>Delete</Button> : '' }
+                                    </Col>
+                                </Row>
+                            </Card.Title>
                             <Card.Body>
                                 <Form>
                                     <Form.Group as={Row} controlId='formCohorttName'>
@@ -157,9 +172,10 @@ const Cohort = ({allCohorts, setAllCohorts, cohortClass, updateList, setKey, set
                                         </Col>
                                     </Form.Group>
                                     <Form.Group as={Row} controlId='formProjectDate'>
-                                        <Form.Label column>Project due date</Form.Label>
+                                        <Form.Label column>Project Start Date</Form.Label>
                                         <Col sm="10">
-                                            <Form.Control type='text' placeholder='01/01/20' value={dueDate} onChange={ev => setDueDate(ev.target.value)} />
+                                            {/* <Form.Control type='text' placeholder='01/01/20' value={startDate} onChange={ev => setStartDate(ev.target.value)} /> */}
+                                            <DatePicker selected={startDate} onChange={date => setStartDate(date)} />
                                         </Col>
                                     </Form.Group>
                                     <Row style={{display: 'flex', justifyContent: 'flex-end'}}>
@@ -171,7 +187,7 @@ const Cohort = ({allCohorts, setAllCohorts, cohortClass, updateList, setKey, set
                                             projectList.length > 0 ?
                                                 projectList.map((project, idx) => {
                                                     return (
-                                                    <li key={project.name + project.date}>
+                                                    <li key={project.name}>
                                                         Project: {project.name}, Start Date: {project.startDate} <Button variant="danger" onClick={() => removeProject(idx)}>-</Button>
                                                     </li>
                                                 )}) : <div>No projects set</div>
@@ -192,7 +208,7 @@ const Cohort = ({allCohorts, setAllCohorts, cohortClass, updateList, setKey, set
                                         {
                                             studentListArr.map((student, idx) => {
                                                 return(
-                                                    <li key={idx}>
+                                                    <li key={student.id}>
                                                         {student.gitHubUser || student} <Button variant="danger" onClick={() => removeUsername(idx)}>-</Button>
                                                     </li>
                                                 )
@@ -200,10 +216,12 @@ const Cohort = ({allCohorts, setAllCohorts, cohortClass, updateList, setKey, set
                                         }
                                         <hr />
                                     </Row>
-                                    <Button variant="primary" onClick={ev => createCohort(ev)}>{cohortClass ? `Update Cohort` : `Create Cohort`}</Button>{' '}
-                                    {
-                                        cohortClass ? <Button variant="primary" onClick={() => setKey('classData')}>Cancel</Button> : <Button variant="primary" as={Link} to={'/'}>Cancel</Button>
-                                    }
+                                    <Row className='justify-content-end'>
+                                        <Button variant="primary" onClick={ev => createCohort(ev)}>{cohortClass ? `Update Cohort` : `Create Cohort`}</Button>{' '}
+                                        {
+                                            cohortClass ? <Button variant="primary" onClick={() => setKey('classData')}>Cancel</Button> : <Button variant="primary" as={Link} to={'/'}>Cancel</Button>
+                                        }
+                                    </Row>
                                 </Form>
                                 {
                                     error
