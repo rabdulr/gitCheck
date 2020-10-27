@@ -7,10 +7,11 @@ import Card from 'react-bootstrap/Card';
 import InputGroup from 'react-bootstrap/InputGroup';
 import Form from 'react-bootstrap/Form';
 import Button from 'react-bootstrap/Button';
-import { Link, useHistory } from 'react-router-dom';
+import { useHistory } from 'react-router-dom';
 import axios from 'axios';
 import Spinner from 'react-bootstrap/Spinner';
 import DatePicker from "react-datepicker";
+import Modal from 'react-bootstrap/Modal';
 
 const Cohort = ({allCohorts, setAllCohorts, cohortClass, updateList, setKey, setCohortClass}) => {
 
@@ -22,6 +23,7 @@ const Cohort = ({allCohorts, setAllCohorts, cohortClass, updateList, setKey, set
     const [username, setUsername] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    const [show, setShow] = useState(false);
     const history = useHistory();
 
     useEffect(() => {
@@ -38,6 +40,8 @@ const Cohort = ({allCohorts, setAllCohorts, cohortClass, updateList, setKey, set
         }
     }, [cohortClass])
 
+    const modalMod = () => setShow(!show);
+
     const addProject = async () => {
         const newProject = {
             name: projectName,
@@ -47,14 +51,10 @@ const Cohort = ({allCohorts, setAllCohorts, cohortClass, updateList, setKey, set
             if (cohortClass) {
                 const {id:cohortId} = cohortClass;
                 const {data: project} = await axios.post('/api/projects/createProject', {cohortId, newProject});
-                setProjectList([...projectList, project]);
-                setProjectName('');
-                setStartDate('');
-            } else {
-                setProjectList([...projectList, newProject]);
-                setProjectName('');
-                setStartDate('');
             }
+            setProjectList([...projectList, newProject]);
+            setProjectName('');
+            setStartDate(new Date());
         } catch (error) {
             throw error
         }
@@ -136,7 +136,6 @@ const Cohort = ({allCohorts, setAllCohorts, cohortClass, updateList, setKey, set
                 setProjectList([]);
                 setError('');
                 history.push(`/cohort/${newCohort.id}`)
-                // Need to set route to the page
             }    
         } catch (error) {
             throw error
@@ -144,6 +143,18 @@ const Cohort = ({allCohorts, setAllCohorts, cohortClass, updateList, setKey, set
             setLoading(false)
         }
     };
+
+    const destroyCohort = async () => {
+        try {
+            await axios.delete(`/api/cohorts/delete/${cohortClass.id}`);
+            setAllCohorts(allCohorts.filter(cohort => cohort.id !== cohortClass.id));
+            setCohortClass({})
+            history.push('/')
+        } catch (error) {
+            throw error
+        }
+
+    }
 
     return (
             <Row>
@@ -157,7 +168,28 @@ const Cohort = ({allCohorts, setAllCohorts, cohortClass, updateList, setKey, set
                                         {cohortClass ? 'Update Cohort' : 'Create New Cohort'}
                                     </Col>
                                     <Col style={{display: 'flex', justifyContent: 'flex-end'}}>
-                                        {cohortClass ? <Button>Delete</Button> : '' }
+                                        {cohortClass ?
+                                        <>
+                                        <Button size='sm' variant='danger' onClick={modalMod}>Delete</Button>
+                                            <Modal
+                                                show={show}
+                                                onHide={modalMod}
+                                                backdrop='static'
+                                                keyboard={false}
+                                            >
+                                                <Modal.Header closeButton>
+                                                    <Modal.Title>Delete {cohortClass.name}</Modal.Title>
+                                                </Modal.Header>
+                                                <Modal.Body>
+                                                    Are you sure you want to delete all students and projects of {cohortClass.name} permanently?
+                                                </Modal.Body>
+                                                <Modal.Footer>
+                                                    <Button variant='secondary' onClick={modalMod}>Close</Button>
+                                                    <Button variant='danger' onClick={destroyCohort}>Destroy</Button>
+                                                </Modal.Footer>
+                                            </Modal>
+                                        
+                                        </> : '' }
                                     </Col>
                                 </Row>
                             </Card.Title>
@@ -187,14 +219,22 @@ const Cohort = ({allCohorts, setAllCohorts, cohortClass, updateList, setKey, set
                                         <Button variant="primary" onClick={addProject}>Add Project</Button>
                                     </Row>
                                     <Row>
-                                        <Col>
+                                        <Col style={{display: 'flex'}}>
                                             {
                                             projectList.length > 0 ?
                                                 projectList.map((project, idx) => {
                                                     return (
-                                                    <li key={project.name}>
-                                                        Project: {project.name}, Start Date: {project.startDate} <Button variant="danger" onClick={() => removeProject(idx)}>-</Button>
-                                                    </li>
+                                                    <Card key={project.name + idx} className='text-center' style={{width: '20rem'}}>
+                                                        <Card.Body>
+                                                            <Card.Title>
+                                                                {project.name}
+                                                            </Card.Title>
+                                                            <Card.Subtitle>
+                                                                {project.startDate}
+                                                            </Card.Subtitle>
+                                                            <Button variant="danger" size='sm' onClick={() => removeProject(idx)}>Remove</Button>
+                                                        </Card.Body>
+                                                    </Card>
                                                 )}) : <div>No projects currently set</div>
                                             }
                                         </Col>
@@ -213,19 +253,23 @@ const Cohort = ({allCohorts, setAllCohorts, cohortClass, updateList, setKey, set
                                         {
                                             studentListArr.map((student, idx) => {
                                                 return(
-                                                    <li key={student.id}>
-                                                        {student.gitHubUser || student} <Button variant="danger" onClick={() => removeUsername(idx)}>-</Button>
-                                                    </li>
+                                                    <>
+                                                        <Button variant='danger' size='sm' onClick={() => removeUsername(idx)} style={{marginRight: '5px'}}>{student.gitHubUser || student} X</Button>
+                                                    </>
                                                 )
                                             })
                                         }
                                         <hr />
                                     </Row>
-                                    <Row className='justify-content-end'>
-                                        <Button variant="primary" onClick={ev => createCohort(ev)}>{cohortClass ? `Update Cohort` : `Create Cohort`}</Button>{' '}
-                                        {
-                                            cohortClass ? <Button variant="primary" onClick={() => setKey('classData')}>Cancel</Button> : <Button variant="primary" as={Link} to={'/'}>Cancel</Button>
-                                        }
+                                    <Row>
+                                        <Col style={{display: 'flex', justifyContent: 'flex-end'}}>
+                                            <Button variant="primary" onClick={ev => createCohort(ev)}>{cohortClass ? 'Update Cohort' : 'Create Cohort'}</Button>{' '}
+                                        </Col>
+                                        <Col style={{display: 'flex', justifyContent: 'flex-start'}}>
+                                            {
+                                                cohortClass ? <Button variant="primary" onClick={() => setKey('classData')}>Cancel</Button> : <Button variant="primary" onClick={() => history.push('/')}>Cancel</Button>
+                                            }
+                                        </Col>
                                     </Row>
                                 </Form>
                                 {
