@@ -5,14 +5,12 @@ const {timedPromise, projectAvg, chunkStudentList} = require('../functions')
 const axios = require('axios');
 const sizeof = require('object-sizeof')
 const redis = require('redis');
+const bluebird = require('bluebird');
+
+bluebird.promisifyAll(redis);
+
 const redisCLient = redis.createClient();
-const {isLoggedIn} = require('./utils')
-
-// Project List for testing
-const seedProjects = JSON.parse(PROJECTS)
-
-// Cohort information is currently hard coded
-// Will need to create a way to get from an array on Front End
+const {isLoggedIn} = require('./utils');
 
 // Functions
 
@@ -31,7 +29,7 @@ const startGetUser = async (token, student, projects) => {
     info.name = student;
     info.repository = await getUserInfo(token, student, projects);
     console.log(`ENDING PROCESS: ${student}`)
-    redisCLient.setex(info.name, 18000, JSON.stringify(info));
+    // redisCLient.setex(info.name, 18000, JSON.stringify(info));
     return info
 };
 
@@ -103,10 +101,17 @@ const getUserInfo = async (token, username, projects) => {
         await Promise.all(repos.map(async (repo) => {
             // Since repo is currently forked, we are getting exact matches
             try {
+                const repoReturn = await redisCLient.getAsync(`${username}.${repo.name}`);
+                const redisCommit = JSON.parse(repoReturn);
+
                 repo.ignore = false;
-    
+                
                 delete repo.owner;
-    
+                
+                if (redisCommit) {
+                    repo.commit_counts = redisCommit
+                    return repo
+                }
                 const forkInsert = {}
                 const commit = {
                     name: 'fork',
@@ -114,7 +119,7 @@ const getUserInfo = async (token, username, projects) => {
                         name: 'Fork',
                         date: repo.created_at
                     }
-                };
+                }
     
                 forkInsert.commit = commit;
     
@@ -140,19 +145,15 @@ const getUserInfo = async (token, username, projects) => {
                     ).catch(err => console.log(err))
                 }
                 commitList.push(forkInsert);
-                repo.commit_counts = await commitList;
-                // acc.push(repo);
+                repo.commit_counts = commitList;
+                redisCLient.setex(`${username}.${repo.name}`, 18000, JSON.stringify(commitList));
                 console.log(`ENDING REPO ${repo.name} for ${username}`)
                 return repo
             } catch (error) {
                 throw error
             }
         }));
-
-        // run function to filter out repos with .ignore
-        user.repo = repos.filter(repo => repo.ignore === false);
-        // store repos information into redis for call back later
-        redisCLient.setex(`${username}.repo`, 18000, JSON.stringify(user.repo));
+        user.repo = repos
         console.log(`FINISHED getting info for ${username}`)
         return user;
     } catch (error) {
@@ -160,36 +161,6 @@ const getUserInfo = async (token, username, projects) => {
     }
 
 };
-
-// Server Calls
-// router.get('/callback', async (req, res, next) => {
-//     try {
-//         const requestToken = req.query.code
-//         const {data: {access_token}} = await axios({
-//             method: 'post',
-//             url: `https://github.com/login/oauth/access_token?client_id=${CLIENT_ID}&client_secret=${CLIENT_SECRET}&code=${requestToken}`,
-//             headers: {
-//                 accept: 'application/json'
-//             }
-//         });
-//         console.log('access_token: ', access_token)
-//         // Build out create/login user
-//         const {data: gitHubUserInfo} = await axios.get('https://api.github.com/user', headers(access_token));
-//         console.log('gitHubUserInfo: ', gitHubUserInfo)
-//         res.redirect(`/?access_token=${access_token}`)
-//     } catch (error) {
-//         throw error;
-//     }
-// })
-
-gitHub.get('/failed', (req, res) => {
-    res.send({message: 'failed login'})
-});
-
-gitHub.get('/good', (req, res) => {
-    console.log('req user: ', req.user)
-    res.send({message: 'Successful login'})
-});
 
 gitHub.get('/getLimit', async (req, res, next) => {
     const {token} = req.query
@@ -201,13 +172,12 @@ gitHub.get('/getLimit', async (req, res, next) => {
     }
 });
 
-gitHub.post('/updateList', async (req, res) => {
+gitHub.post('/updateList', isLoggedIn, async (req, res) => {
+    const {accessToken} = req.user;
     const {usersList, projectList} = req.body;
-    const {token} = req.query;
     try {
-        console.log(usersList)
         const chunkList = chunkStudentList(usersList, 2);
-        const chunkedData = await returnUserData(chunkList, projectList, token);
+        const chunkedData = await returnUserData(chunkList, projectList, accessToken);
         const cohort = chunkedData.flat().filter(item => item !== undefined);
         // Calculate AVG Data for each project
         const returnedAvgData = projectList.map(project => projectAvg(cohort, project));
@@ -223,7 +193,6 @@ gitHub.post('/getUsers', isLoggedIn, async (req, res) => {
     const {students, projects} = req.body
     // Function is reading seed data from .env
     try {
-        console.log(students)
         const chunkList = chunkStudentList(students, 2);
         const chunkedData = await returnUserData(chunkList, projects, accessToken);
         const cohort = chunkedData.flat().filter(item => item !== undefined);
@@ -236,7 +205,7 @@ gitHub.post('/getUsers', isLoggedIn, async (req, res) => {
     }
 });
 
-gitHub.post('/getUsers/:username', cache, async (req, res) => {
+gitHub.post('/getUsers/:username', async (req, res) => {
     const {username} = req.params;
     const {token} = req.query;
     const {projectList} = req.body
@@ -249,36 +218,36 @@ gitHub.post('/getUsers/:username', cache, async (req, res) => {
 });
 
 // Breaking down repo calls
-gitHub.get('/getUsers/:username/repo', (req, res) => {
-    const {username} = req.params;
-    try {
-        redisCLient.get(`${username}.repo`, (error, cachedData) => {
-            if (error) throw error;
-            if (cachedData !== null) {
-                console.log(`PULLING REDIS REPO for ${username}`);
-                const repo = JSON.parse(cachedData);
-                res.send({repo})
-            }
-        })
-    } catch (error) {
-        throw error
-    }
-})
+// gitHub.get('/getUsers/:username/repo', (req, res) => {
+//     const {username} = req.params;
+//     try {
+//         redisCLient.get(`${username}.repo`, (error, cachedData) => {
+//             if (error) throw error;
+//             if (cachedData !== null) {
+//                 console.log(`PULLING REDIS REPO for ${username}`);
+//                 const repo = JSON.parse(cachedData);
+//                 res.send({repo})
+//             }
+//         })
+//     } catch (error) {
+//         throw error
+//     }
+// })
 // Redis
 
-function cache(req, res, next) {
-    const {username} = req.params
-    console.log('REDIS CONSOLE: ', username)
-    redisCLient.get(username, (error, cachedData) => {
-        if (error) throw error;
-        if (cachedData !== null) {
-            console.log(`PULLING REDIS for ${username}`)
-            const student = JSON.parse(cachedData)
-            res.send({student})
-        } else {
-            next()
-        }
-    })
-}
+// function cache(req, res, next) {
+//     const {username} = req.params
+//     console.log('REDIS CONSOLE: ', username)
+//     redisCLient.get(username, (error, cachedData) => {
+//         if (error) throw error;
+//         if (cachedData !== null) {
+//             console.log(`PULLING REDIS for ${username}`)
+//             const student = JSON.parse(cachedData)
+//             res.send({student})
+//         } else {
+//             next()
+//         }
+//     })
+// }
 
 module.exports = gitHub

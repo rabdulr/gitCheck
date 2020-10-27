@@ -25,6 +25,7 @@ students.post('/createStudent', isLoggedIn, async (req, res, next) => {
 students.delete('/delete/:id', isLoggedIn, async (req, res, next) => {
     try {
         const {id} = req.params
+        console.log('id: ', id)
         const destroyResponse = await destroyStudentById(id)
         res.send(destroyResponse)
     } catch (error) {

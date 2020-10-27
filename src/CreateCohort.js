@@ -18,8 +18,6 @@ const CreateCohort = ({allCohorts, setAllCohorts, cohortClass, updateList, setKe
     const [projectName, setProjectName] = useState('');
     const [dueDate, setDueDate] = useState('');
     const [username, setUsername] = useState('');
-    const [studentsToDestroy, setStudentsToDestroy] = useState([]);
-    const [projectsToDestroy, setProjectsToDestroy] = useState([]);
 
     useEffect(() => {
         if (cohortClass) {
@@ -68,7 +66,7 @@ const CreateCohort = ({allCohorts, setAllCohorts, cohortClass, updateList, setKe
 
     const addUsername = async() => {
         try {
-            if(cohortClass) {
+            if( cohortClass) {
                 const {id:cohortId} = cohortClass;
                 const {data: student} = await axios.post('/api/students/createStudent', {cohortId, username});
                 setStudentListArr([...studentListArr, student]);
@@ -85,7 +83,7 @@ const CreateCohort = ({allCohorts, setAllCohorts, cohortClass, updateList, setKe
     const removeUsername = async (removedIdx) => {
         try {
             if (cohortClass) {
-                await axios.delete(`/api/projects/delete/${studentListArr[removedIdx].id}`)
+                await axios.delete(`/api/students/delete/${studentListArr[removedIdx].id}`)
             }
             const updatedStudentList = studentListArr.filter((_, idx) => idx !== removedIdx);
             setStudentListArr(updatedStudentList)
@@ -96,30 +94,32 @@ const CreateCohort = ({allCohorts, setAllCohorts, cohortClass, updateList, setKe
 
     const createCohort = async (ev) => {
         ev.preventDefault();
-        if (cohortClass) {
-            // Need to send update of list/items that were updated to DB
-            // Run an update on the items
-
-            const {returnedAvgData, cohort} = await updateList(studentListArr, projectList);
-            cohortClass.students = studentListArr;
-            cohortClass.projects = projectList;
-            cohortClass.cohortData = cohort;
-            cohortClass.cohortAvg = returnedAvgData
-            setAllCohorts(allCohorts.map(cohort => cohort.id === cohortClass.id ? cohortClass : cohort));
-            setKey('classData');
-        } else {
-            // Create DB entries
-            const {data: newCohort} = await axios.post('/api/cohorts/createCohort', {cohortName});
-            const {id:cohortId} = newCohort;
-            const {data: students} = await axios.post('/api/students/createStudents', {cohortId, studentList: studentListArr});
-            const {data: projects} = await axios.post('/api/projects/createProjects', {cohortId, projectList: projectList});
-            newCohort.students = students;
-            newCohort.projects = projects;
-            setAllCohorts([...allCohorts, newCohort]);
-            setCohortName('')
-            setStudentListArr([]);
-            setProjectList([]);
-            // Need to set route to the page
+        try {
+            if (cohortClass) {
+                // Run an update on the items
+                const {returnedAvgData, cohort} = await updateList(studentListArr, projectList);
+                cohortClass.students = studentListArr;
+                cohortClass.projects = projectList;
+                cohortClass.cohortData = cohort;
+                cohortClass.cohortAvg = returnedAvgData
+                setAllCohorts(allCohorts.map(cohort => cohort.id === cohortClass.id ? cohortClass : cohort));
+                setKey('classData');
+            } else {
+                // Create DB entries
+                const {data: newCohort} = await axios.post('/api/cohorts/createCohort', {cohortName});
+                const {id:cohortId} = newCohort;
+                const {data: students} = await axios.post('/api/students/createStudents', {cohortId, studentList: studentListArr});
+                const {data: projects} = await axios.post('/api/projects/createProjects', {cohortId, projectList: projectList});
+                newCohort.students = students;
+                newCohort.projects = projects;
+                setAllCohorts([...allCohorts, newCohort]);
+                setCohortName('')
+                setStudentListArr([]);
+                setProjectList([]);
+                // Need to set route to the page
+            }    
+        } catch (error) {
+            throw error
         }
     };
 

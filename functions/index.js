@@ -104,7 +104,6 @@ const adjustDateGaps = (data) => {
 };
 
 const basicCommitLineData = ({commit_counts}) => {
-
     if (commit_counts === 0) return;
 
     const commitArr = commit_counts.map(commit => {

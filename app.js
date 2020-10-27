@@ -5,10 +5,12 @@ const server = express();
 const passport = require('passport');
 const cookieSession = require('cookie-session');
 require('./api/passport-setup');
+const cors = require('cors')
 
 const api = require('./api');
 
 const bodyParser = require('body-parser');
+server.use(cors())
 server.use(bodyParser.json());
 
 server.use('/dist', express.static(path.join(__dirname, 'dist')));
