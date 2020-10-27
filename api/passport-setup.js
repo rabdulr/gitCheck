@@ -23,7 +23,6 @@ passport.use(new GitHubStrategy({
   async function(accessToken, refreshToken, profile, done) {
     try {
       const user = await getUserByGitHubId(profile.id);
-      console.log('accessToken: ', accessToken)
       if (user) {
         const {id} = user
         const updatedUser = await updateUserToken({id, accessToken})

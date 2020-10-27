@@ -1,3 +1,4 @@
+/* eslint-disable max-statements */
 import React, {useState, useEffect} from 'react';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
@@ -31,35 +32,66 @@ const CreateCohort = ({allCohorts, setAllCohorts, cohortClass, updateList, setKe
         }
     }, [])
 
-    const addProject = () => {
+    const addProject = async () => {
         const newProject = {
             name: projectName,
             startDate: dueDate
         }
-        setProjectList([...projectList, newProject]);
-        setProjectName('');
-        setDueDate('');
-    };
-
-    const removeProject = (removedIdx) => {
-        if (cohortClass) {
-            setProjectsToDestroy([...projectsToDestroy, projectList[removedIdx]])
+        try {
+            if (cohortClass) {
+                const {id:cohortId} = cohortClass;
+                const {data: project} = await axios.post('/api/projects/createProject', {cohortId, newProject});
+                setProjectList([...projectList, project]);
+                setProjectName('');
+                setDueDate('');
+            } else {
+                setProjectList([...projectList, newProject]);
+                setProjectName('');
+                setDueDate('');
+            }
+        } catch (error) {
+            throw error
         }
-        const updateList = projectList.filter((_, idx) => idx !== removedIdx);
-        setProjectList(updateList);
     };
 
-    const addUsername = () => {
-        setStudentListArr([...studentListArr, username]);
-        setUsername('')
+    const removeProject = async (removedIdx) => {
+        try {
+            if (cohortClass) {
+                await axios.delete(`/api/projects/delete/${projectList[removedIdx].id}`)
+            }
+            const updateList = projectList.filter((_, idx) => idx !== removedIdx);
+            setProjectList(updateList);
+        } catch (error) {
+            throw error
+        }
+    };
+
+    const addUsername = async() => {
+        try {
+            if(cohortClass) {
+                const {id:cohortId} = cohortClass;
+                const {data: student} = await axios.post('/api/students/createStudent', {cohortId, username});
+                setStudentListArr([...studentListArr, student]);
+                setUsername('');
+            } else {
+                setStudentListArr([...studentListArr, username]);
+                setUsername('')
+            }
+        } catch (error) {
+            throw error
+        }
     }
     
-    const removeUsername = (removedIdx) => {
-        if (cohortClass) {
-            setStudentsToDestroy([...studentsToDestroy, studentListArr[removedIdx]])
+    const removeUsername = async (removedIdx) => {
+        try {
+            if (cohortClass) {
+                await axios.delete(`/api/projects/delete/${studentListArr[removedIdx].id}`)
+            }
+            const updatedStudentList = studentListArr.filter((_, idx) => idx !== removedIdx);
+            setStudentListArr(updatedStudentList)
+        } catch (error) {
+            throw error
         }
-        const updatedStudentList = studentListArr.filter((_, idx) => idx !== removedIdx);
-        setStudentListArr(updatedStudentList)
     }
 
     const createCohort = async (ev) => {
@@ -67,33 +99,27 @@ const CreateCohort = ({allCohorts, setAllCohorts, cohortClass, updateList, setKe
         if (cohortClass) {
             // Need to send update of list/items that were updated to DB
             // Run an update on the items
-            console.log('students to destroy: ', studentsToDestroy);
-            console.log('projects to destroy: ', projectsToDestroy)
-            const studentsRes = await axios.delete('/api/students/deleteBatch', {data: {students: studentsToDestroy}});
-            const projectsRes = await axios.delete('/api/projects/deleteBatch', {data: {projects: projectsToDestroy}});
-            console.log('response from delete: ', studentsRes, projectsRes)
 
-            // const {returnedAvgData, cohort} = await updateList(students, projectList);
-            // newCohort.id = cohortClass.id
-            // newCohort.value.cohortData = cohort;
-            // newCohort.value.cohortAvg = returnedAvgData;
-            // console.log('new Cohort: ', newCohort)
-            // setAllCohorts(allCohorts.map(cohort => cohort.id === newCohort.id ? newCohort : cohort));
-            // setCohortClass(newCohort)
-            // setKey('classData');
+            const {returnedAvgData, cohort} = await updateList(studentListArr, projectList);
+            cohortClass.students = studentListArr;
+            cohortClass.projects = projectList;
+            cohortClass.cohortData = cohort;
+            cohortClass.cohortAvg = returnedAvgData
+            setAllCohorts(allCohorts.map(cohort => cohort.id === cohortClass.id ? cohortClass : cohort));
+            setKey('classData');
         } else {
             // Create DB entries
-            console.log('studentList: ', studentListArr)
             const {data: newCohort} = await axios.post('/api/cohorts/createCohort', {cohortName});
-            const {data: students} = await axios.post('/api/students/createStudents', {newCohort, studentListArr});
-            const {data: projects} = await axios.post('/api/projects/createProjects', {newCohort, projectList});
-            console.log('projects: ', projects)
+            const {id:cohortId} = newCohort;
+            const {data: students} = await axios.post('/api/students/createStudents', {cohortId, studentList: studentListArr});
+            const {data: projects} = await axios.post('/api/projects/createProjects', {cohortId, projectList: projectList});
             newCohort.students = students;
             newCohort.projects = projects;
             setAllCohorts([...allCohorts, newCohort]);
             setCohortName('')
             setStudentListArr([]);
             setProjectList([]);
+            // Need to set route to the page
         }
     };
 

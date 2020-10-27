@@ -4,8 +4,7 @@ const {createProject, destroyProject} = require('../db')
 
 projects.post('/createProjects', isLoggedIn, async (req, res, next) => {
     try {
-        const {newCohort, projectList} = req.body;
-        const {id:cohortId} = newCohort;
+        const {cohortId, projectList} = req.body;
         const projectReturn = await Promise.all(projectList.map(project => createProject({cohortId, startDate: project.startDate, name: project.name})
         ))
         res.send(projectReturn);
@@ -14,10 +13,20 @@ projects.post('/createProjects', isLoggedIn, async (req, res, next) => {
     }
 })
 
-projects.delete('/deleteBatch', isLoggedIn, async (req, res, next) => {
+projects.post('/createProject', isLoggedIn, async (req, res, next) => {
     try {
-        const {projects} = req.data
-        const destroyResponse = await Promise.all(projects.map(project => destroyProject(project.id)))
+        const {cohortId, newProject} = req.body;
+        const projectReturn = await createProject({cohortId, startDate: newProject.startDate, name: newProject.name});
+        res.send(projectReturn);
+    } catch (error) {
+        throw error
+    }
+})
+
+projects.delete('/delete/:id', isLoggedIn, async (req, res, next) => {
+    try {
+        const {id} = req.params
+        const destroyResponse = await destroyProject(id)
         res.send(destroyResponse)
     } catch (error) {
         throw error

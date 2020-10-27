@@ -4,20 +4,28 @@ const {createStudent, destroyStudentById} = require('../db')
 
 students.post('/createStudents', isLoggedIn, async (req, res, next) => {
     try {
-        const {newCohort, studentListArr} = req.body;
-        const {id:cohortId} = newCohort;
-        const studentReturn = await Promise.all(studentListArr.map(gitHubUser => createStudent({cohortId, gitHubUser})))
+        const {cohortId, studentList} = req.body;
+        const studentReturn = await Promise.all(studentList.map(gitHubUser => createStudent({cohortId, gitHubUser})))
         res.send(studentReturn)
     } catch (error) {
         throw error
     }
 });
 
-students.delete('/deleteBatch', isLoggedIn, async (req, res, next) => {
+students.post('/createStudent', isLoggedIn, async (req, res, next) => {
     try {
-        console.log('req data: ', req)
-        const {students} = req.data
-        const destroyResponse = await Promise.all(students.map(student => destroyStudentById(student.id)))
+        const {cohortId, username: gitHubUser} = req.body;
+        const studentReturn = await createStudent({cohortId, gitHubUser});
+        res.send(studentReturn)
+    } catch (error) {
+        throw error
+    }
+})
+
+students.delete('/delete/:id', isLoggedIn, async (req, res, next) => {
+    try {
+        const {id} = req.params
+        const destroyResponse = await destroyStudentById(id)
         res.send(destroyResponse)
     } catch (error) {
         throw error
