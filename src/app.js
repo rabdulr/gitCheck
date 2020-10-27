@@ -14,6 +14,8 @@ import {
 
 import CreateCohort from './Cohort';
 import ClassInfo from './ClassInfo';
+import Main from './Main';
+import { Nav } from 'react-bootstrap';
 
 
 const App = () => {
@@ -83,13 +85,13 @@ const App = () => {
                                     }
                                 </DropdownButton>
                                 <Navbar.Collapse className="justify-content-end">
-                                    <Button variant="primary" as={Link} to={'/new-cohort'} >Add New Cohort</Button>{' '}
-                                    <Button variant="primary" onClick={logOut}>Log Out</Button>
+                                    <Button variant="secondary" as={Link} to={'/new-cohort'} >Add New Cohort</Button>{' '}
+                                    <Button variant="secondary" onClick={logOut}>Log Out</Button>
                                 </Navbar.Collapse>
                             </> :
                             <>
                                 <Navbar.Collapse className="justify-content-end">
-                                    <Button variant="primary" onClick={gitHubLogin}>GitHub Login</Button>
+                                    <Button variant="light" onClick={gitHubLogin}>GitHub Login</Button>
                                 </Navbar.Collapse>
                             </>
                     }
@@ -100,7 +102,7 @@ const App = () => {
                             token ?
                                 <>
                                         <Route exact path="/">
-                                            <h3>Welcome!!</h3>
+                                            <Main username={userLoginName} />
                                         </Route>
                                         <Route path="/cohort/:id">
                                             <ClassInfo updateList={updateList} allCohorts={allCohorts} setAllCohorts={setAllCohorts} />
@@ -108,10 +110,16 @@ const App = () => {
                                         <Route path="/new-cohort">
                                             <CreateCohort allCohorts={allCohorts} setAllCohorts={setAllCohorts} updateList={updateList} />
                                         </Route>
-                                </> : <><h3>You are not logged in</h3></>
+                                </> : <Main />
                         }
                     </Col>
                 </Row>
+                <Navbar bg='light' expand='md'>
+                    <Navbar.Collapse className="justify-content-center">
+                        <Nav.Link href="https://www.github.com/rabdulr/gitCheck">GitHub Source</Nav.Link>
+                        <Nav.Link href="mailto:rabdulr@icloud.com">Feedback</Nav.Link>
+                    </Navbar.Collapse>
+                </Navbar>
             </Container>
         </>
     )

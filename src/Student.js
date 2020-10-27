@@ -2,7 +2,6 @@ import React, {useState, useEffect} from 'react';
 import Repo from './Repo';
 import Card from 'react-bootstrap/Card';
 import ListGroup from 'react-bootstrap/ListGroup';
-import ListGroupItem from 'react-bootstrap/ListGroupItem';
 
 const Student = ({student, avgData}) => {
     const [studentRepo, setStudentRepo] = useState([])
