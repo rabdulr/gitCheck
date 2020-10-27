@@ -9,7 +9,7 @@ const ClassData = ({avgData}) => {
 
     return (
         <Row>
-            <Col style={{paddingLeft: "0"}}>
+            <Col>
                 {
                     avgData.map(data => {
                         return (

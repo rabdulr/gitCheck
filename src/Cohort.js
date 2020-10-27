@@ -26,6 +26,10 @@ const Cohort = ({allCohorts, setAllCohorts, cohortClass, updateList, setKey, set
     useEffect(() => {
         if (cohortClass) {
             const {projects, students, name} = cohortClass;
+            projects.map(project => {
+                project.startDate = (new Date(project.startDate)).toLocaleDateString();
+                return project
+            })
             // Need to redo this whole bit down here
             setStudentListArr(students)
             setCohortName(name);
@@ -148,7 +152,7 @@ const Cohort = ({allCohorts, setAllCohorts, cohortClass, updateList, setKey, set
                         <Card.Body>
                             <Card.Title>
                                 <Row>
-                                    <Col style={{display: 'flex', justifyContent: 'flex-start'}}>
+                                    <Col style={{display: 'flex', alignItems: 'center'}}>
                                         {cohortClass ? 'Update Cohort' : 'Create New Cohort'}
                                     </Col>
                                     <Col style={{display: 'flex', justifyContent: 'flex-end'}}>
@@ -171,8 +175,8 @@ const Cohort = ({allCohorts, setAllCohorts, cohortClass, updateList, setKey, set
                                             <Form.Control type="text" placeholder="Project Name" value={projectName} onChange={ev => setProjectName(ev.target.value)} />
                                         </Col>
                                     </Form.Group>
-                                    <Form.Group as={Row} controlId='formProjectDate'>
-                                        <Form.Label column>Project Start Date</Form.Label>
+                                    <Form.Group as={Row} controlId='formProjectDate' >
+                                        <Form.Label column style={{display: 'flex', alignItems: 'center'}}>Project Start Date</Form.Label>
                                         <Col sm="10">
                                             {/* <Form.Control type='text' placeholder='01/01/20' value={startDate} onChange={ev => setStartDate(ev.target.value)} /> */}
                                             <DatePicker selected={startDate} onChange={date => setStartDate(date)} />
