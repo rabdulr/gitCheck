@@ -5,7 +5,7 @@ import Col from 'react-bootstrap/Col';
 import ListGroupItem from 'react-bootstrap/ListGroupItem';
 import Spinner from 'react-bootstrap/Spinner';
 
-import Student from './Students';
+import Student from './Student';
 import StudentCard from './StudentCard'
 
 const ClassStudentView = ({avgData, cohortData}) => {

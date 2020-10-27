@@ -5,17 +5,18 @@ import Spinner from 'react-bootstrap/Spinner';
 import Col from 'react-bootstrap/Col';
 
 const ClassData = ({avgData}) => {
-    const [avgView, setAvgView] = useState();
 
     return (
         <Row>
             <Col>
                 {
                     avgData.map(data => {
+                        console.log('data: ', data)
                         return (
                             <div key={data.name}>
                                 <h4>{data.project.name}</h4>
-                                <ResponsiveContainer width="100%" height={300}>
+                                <h6>{new Date(data.project.startDate).toLocaleDateString()}</h6>
+                                <ResponsiveContainer width="95%" height={300}>
                                     <LineChart data={data.avgData} margin={{top: 5, right: 20, bottom: 5, left: 0}}>
                                         <CartesianGrid stroke="#ccc" strokeDasharray="5 5" />
                                         <XAxis dataKey="day" />

@@ -1,11 +1,6 @@
 import React, {useState, useEffect, forwardRef} from 'react';
-import Project from './Project';
-import { LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip, Legend} from 'recharts';
+import { LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer} from 'recharts';
 import {basicCommitLineData, findData, combineData} from '../functions';
-import Card from 'react-bootstrap/Card';
-import Collapse from 'react-bootstrap/Collapse';
-import ListGroupItem from 'react-bootstrap/ListGroupItem';
-import ListGroup from 'react-bootstrap/ListGroup';
 import MaterialTable from 'material-table';
 import FirstPage from '@material-ui/icons/FirstPage';
 import LastPage from '@material-ui/icons/LastPage';
@@ -23,7 +18,6 @@ const Repos = ({project, idx, avgData}) => {
     const [data, setData] = useState(basicCommitLineData(project));
     const [classData, setClassData] = useState(findData(avgData, project.name));
     const [combinedData, setCombinedData] = useState(combineData(data, classData));
-    const [open, setOpen] = useState(false);
     const {commit_counts} = project;
 
     useEffect(() => {
@@ -66,17 +60,19 @@ const Repos = ({project, idx, avgData}) => {
                 data.length > 0 ?
                 <>
                     <h6>Last Updated: {new Date(project.updated_at).toLocaleDateString()}</h6>
-                    <LineChart width={900} height={300} data={combinedData || data} margin={{top: 5, right: 20, bottom: 5, left: 0}}>
-                        <CartesianGrid stroke="#ccc" strokeDasharray="5 5" />
-                        <XAxis dataKey="day" />
-                        <YAxis allowDecimals={false} domain={[0, 'auto']} />
-                        <Legend verticalAlign="top" height={10} />
-                        <Line type="monotone" dataKey="avgCommits" stroke="#82ca9d" />
-                        <Line type="monotone" dataKey="commits" stroke="#8884d8" strokeWidth="2"  dot={{ strokeWidth: 3 }} />
-                        <Tooltip />
-                    </LineChart>
+                    <ResponsiveContainer width="90%" height={300}>
+                        <LineChart data={combinedData || data} margin={{top: 5, right: 20, bottom: 5, left: 0}}>
+                            <CartesianGrid stroke="#ccc" strokeDasharray="5 5" />
+                            <XAxis dataKey="day" />
+                            <YAxis allowDecimals={false} domain={[0, 'auto']} />
+                            <Legend verticalAlign="top" height={10} />
+                            <Line type="monotone" dataKey="avgCommits" stroke="#82ca9d" />
+                            <Line type="monotone" dataKey="commits" stroke="#8884d8" strokeWidth="2"  dot={{ strokeWidth: 3 }} />
+                            <Tooltip />
+                        </LineChart>
+                    </ResponsiveContainer>
                 </>
-                : <h3>No Data to Graph</h3>
+                : <h3>Data Unavailble to Graph</h3>
             }
                 {/* <li>Project URL: {project.url}</li> */}
                 <MaterialTable

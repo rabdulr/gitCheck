@@ -1,3 +1,4 @@
+/* eslint-disable no-catch-shadow */
 /* eslint-disable max-statements */
 import React, {useState, useEffect} from 'react';
 import Row from 'react-bootstrap/Row';
@@ -194,7 +195,7 @@ const Cohort = ({allCohorts, setAllCohorts, cohortClass, updateList, setKey, set
                                                     <li key={project.name}>
                                                         Project: {project.name}, Start Date: {project.startDate} <Button variant="danger" onClick={() => removeProject(idx)}>-</Button>
                                                     </li>
-                                                )}) : <div>No projects set</div>
+                                                )}) : <div>No projects currently set</div>
                                             }
                                         </Col>
                                     </Row>

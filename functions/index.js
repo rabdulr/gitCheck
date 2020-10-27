@@ -257,21 +257,6 @@ const forkInsert = (repo) => {
     return { commit }
 }
 
-// Artifact of compare function
-// const compare = (a, b) => {
-//     const dateA = new Date(a.day);
-//     const dateB = new Date(b.day);
-
-//     let comparison = 0;
-
-//     if(dateA < dateB) {
-//         comparison = 1;
-//     } else if (dateA > dateB) {
-//         comparison = -1;
-//     }
-
-//     return comparison * -1
-// }
 module.exports = {
     basicCommitLineData,
     projectAvg,

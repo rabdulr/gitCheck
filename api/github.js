@@ -1,7 +1,5 @@
 /* eslint-disable max-statements */
 const gitHub = require('express').Router();
-const {STUDENT_LIST, CLIENT_ID, CLIENT_SECRET, PROJECTS} = process.env;
-const COHORT = JSON.parse(STUDENT_LIST);
 const {timedPromise, projectAvg, chunkStudentList, forkInsert} = require('../functions')
 const axios = require('axios');
 const sizeof = require('object-sizeof')
@@ -60,17 +58,12 @@ const createCommitList = async (token, commitItem, username, arr, projectStart) 
     }
 };
 
-const getLimit = async (token) => {
-    const { data: limit } = await axios('https://api.github.com/rate_limit', headers(token));
-    return limit;
-};
-
 const returnUserData = (chunkList, projectList, token) => {
     try {
         let delayTime = 0;
         return Promise.all(chunkList.map(set => {
             return Promise.all(set.map(async (studentData) => {
-                delayTime += 50
+                delayTime += 20
                 const {data: {student}} = await timedPromise(delayTime, axios.post(`http://localhost:3000/api/github/getUsers/${studentData.gitHubUser}`, {projectList}, {params: {token}}))
                 return student;
             }))
@@ -103,16 +96,13 @@ const getUserInfo = async (token, username, projects) => {
             // Since repo is currently forked, we are getting exact matches
             try {
                 const repoReturn = await redisCLient.getAsync(`${username}.${repo.name}`);
-                const redisCommit = JSON.parse(repoReturn);
-                
+                const redisCommit = JSON.parse(repoReturn);          
                 delete repo.owner;
-                
                 if (redisCommit) {
                     repo.commit_counts = redisCommit;
                     console.log(`PULLING REDIS: ${username}/${repo.name} `)
                     return repo
                 }
-    
                 const commitList = [];
                 console.log(`STARTING REPO ${repo.name} for ${username}`)
                 let response = await axios(`${repo.url}/commits/master`, headers(token)).catch(err => err.response.status);
@@ -121,9 +111,7 @@ const getUserInfo = async (token, username, projects) => {
                     repo.commit_counts = commitList;
                     redisCLient.setex(`${username}.${repo.name}`, 18000, JSON.stringify(commitList));
                     return repo;
-                }
-
-                if (response === 422) {
+                } else if (response === 422) {
                     response = await axios(`${repo.url}/commits/main`, headers(token)).catch(err => err.response.status)
                 }
 
@@ -159,16 +147,6 @@ const getUserInfo = async (token, username, projects) => {
 
 };
 
-gitHub.get('/getLimit', async (req, res, next) => {
-    const {token} = req.query
-    try {
-        const limit = await getLimit(token);
-        res.send({limit})
-    } catch (error) {
-        throw error;
-    }
-});
-
 gitHub.post('/updateList', isLoggedIn, async (req, res) => {
     const {accessToken} = req.user;
     const {usersList, projectList} = req.body;
@@ -178,7 +156,6 @@ gitHub.post('/updateList', isLoggedIn, async (req, res) => {
         const cohort = chunkedData.flat().filter(item => item !== undefined);
         // Calculate AVG Data for each project
         const returnedAvgData = projectList.map(project => projectAvg(cohort, project));
-        console.log('Size of cohort file: ', sizeof(cohort))
         res.send({cohort, returnedAvgData})
     } catch (error) {
         throw error;
@@ -195,7 +172,6 @@ gitHub.post('/getUsers', isLoggedIn, async (req, res) => {
         const cohort = chunkedData.flat().filter(item => item !== undefined);
         // Calculate AVG Data for each project
         const returnedAvgData = projects.map(project => projectAvg(cohort, project));
-        console.log('Size of cohort file: ', sizeof(cohort))
         res.send({cohort, returnedAvgData})
     } catch (error) {
         throw error;
@@ -213,38 +189,5 @@ gitHub.post('/getUsers/:username', async (req, res) => {
         throw error
     }
 });
-
-// Breaking down repo calls
-// gitHub.get('/getUsers/:username/repo', (req, res) => {
-//     const {username} = req.params;
-//     try {
-//         redisCLient.get(`${username}.repo`, (error, cachedData) => {
-//             if (error) throw error;
-//             if (cachedData !== null) {
-//                 console.log(`PULLING REDIS REPO for ${username}`);
-//                 const repo = JSON.parse(cachedData);
-//                 res.send({repo})
-//             }
-//         })
-//     } catch (error) {
-//         throw error
-//     }
-// })
-// Redis
-
-// function cache(req, res, next) {
-//     const {username} = req.params
-//     console.log('REDIS CONSOLE: ', username)
-//     redisCLient.get(username, (error, cachedData) => {
-//         if (error) throw error;
-//         if (cachedData !== null) {
-//             console.log(`PULLING REDIS for ${username}`)
-//             const student = JSON.parse(cachedData)
-//             res.send({student})
-//         } else {
-//             next()
-//         }
-//     })
-// }
 
 module.exports = gitHub
