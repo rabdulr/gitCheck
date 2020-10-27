@@ -1,7 +1,8 @@
+/* eslint-disable max-statements */
 const gitHub = require('express').Router();
 const {STUDENT_LIST, CLIENT_ID, CLIENT_SECRET, PROJECTS} = process.env;
 const COHORT = JSON.parse(STUDENT_LIST);
-const {timedPromise, projectAvg, chunkStudentList} = require('../functions')
+const {timedPromise, projectAvg, chunkStudentList, forkInsert} = require('../functions')
 const axios = require('axios');
 const sizeof = require('object-sizeof')
 const redis = require('redis');
@@ -103,33 +104,29 @@ const getUserInfo = async (token, username, projects) => {
             try {
                 const repoReturn = await redisCLient.getAsync(`${username}.${repo.name}`);
                 const redisCommit = JSON.parse(repoReturn);
-
-                repo.ignore = false;
                 
                 delete repo.owner;
                 
                 if (redisCommit) {
-                    repo.commit_counts = redisCommit
+                    repo.commit_counts = redisCommit;
+                    console.log(`PULLING REDIS: ${username}/${repo.name} `)
                     return repo
                 }
-                const forkInsert = {}
-                const commit = {
-                    name: 'fork',
-                    author: {
-                        name: 'Fork',
-                        date: repo.created_at
-                    }
-                }
-    
-                forkInsert.commit = commit;
     
                 const commitList = [];
                 console.log(`STARTING REPO ${repo.name} for ${username}`)
-                const response = await axios(`${repo.url}/commits/master`, headers(token)).catch(err => err.response.status);
+                let response = await axios(`${repo.url}/commits/master`, headers(token)).catch(err => err.response.status);
+                
                 if (response === 409) {
                     repo.commit_counts = commitList;
+                    redisCLient.setex(`${username}.${repo.name}`, 18000, JSON.stringify(commitList));
                     return repo;
                 }
+
+                if (response === 422) {
+                    response = await axios(`${repo.url}/commits/main`, headers(token)).catch(err => err.response.status)
+                }
+
                 const {data: commitMaster} = response;
                 delete commitMaster.author;
                 delete commitMaster.owner;
@@ -144,7 +141,7 @@ const getUserInfo = async (token, username, projects) => {
                         })
                     ).catch(err => console.log(err))
                 }
-                commitList.push(forkInsert);
+                commitList.push(forkInsert(repo));
                 repo.commit_counts = commitList;
                 redisCLient.setex(`${username}.${repo.name}`, 18000, JSON.stringify(commitList));
                 console.log(`ENDING REPO ${repo.name} for ${username}`)

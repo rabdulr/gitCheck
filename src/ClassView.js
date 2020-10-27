@@ -12,7 +12,7 @@ import CreateCohort from './CreateCohort';
 
 
 const ClassView = ({cohort, allCohorts, setAllCohorts }) => {
-    console.log('classview cohort: ', cohort)
+    
     const name = cohort.cohort;
     const {value:{cohortData, cohortAvg}} = cohort
     const [error, setError] = useState('');

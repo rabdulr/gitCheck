@@ -8,7 +8,7 @@ import axios from 'axios';
 import ClassData from './ClassData';
 import ClassStudentView from './ClassStudentsView';
 import CreateCohort from './CreateCohort';
-// import { FilterList } from '@material-ui/icons';
+
 
 const ClassInfo = ({updateList, allCohorts, setAllCohorts}) => {
     const [key, setKey] = useState('classData');

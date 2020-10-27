@@ -246,6 +246,17 @@ const chunkStudentList = (list, size) => {
     return result;
 }
 
+const forkInsert = (repo) => {
+    const commit = {
+        name: 'fork',
+        author: {
+            name: 'Fork',
+            date: repo.created_at
+        }
+    }
+    return { commit }
+}
+
 // Artifact of compare function
 // const compare = (a, b) => {
 //     const dateA = new Date(a.day);
@@ -268,5 +279,6 @@ module.exports = {
     combineData,
     splitHairs,
     timedPromise,
-    chunkStudentList
+    chunkStudentList,
+    forkInsert
 }
