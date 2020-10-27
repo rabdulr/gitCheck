@@ -2,7 +2,6 @@
 import React, {useState, useEffect} from 'react';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
-import Select from 'react-dropdown-select';
 import Card from 'react-bootstrap/Card';
 import InputGroup from 'react-bootstrap/InputGroup';
 import Form from 'react-bootstrap/Form';
@@ -11,7 +10,7 @@ import { Link, useHistory } from 'react-router-dom';
 import axios from 'axios';
 import Spinner from 'react-bootstrap/Spinner';
 
-const CreateCohort = ({allCohorts, setAllCohorts, cohortClass, updateList, setKey, setCohortClass}) => {
+const Cohort = ({allCohorts, setAllCohorts, cohortClass, updateList, setKey, setCohortClass}) => {
 
     const [cohortName, setCohortName] = useState('');
     const [studentListArr, setStudentListArr] = useState([]);
@@ -20,7 +19,6 @@ const CreateCohort = ({allCohorts, setAllCohorts, cohortClass, updateList, setKe
     const [dueDate, setDueDate] = useState('');
     const [username, setUsername] = useState('');
     const [loading, setLoading] = useState(false);
-    const [show, setShow] = useState(false);
     const [error, setError] = useState('');
     const history = useHistory();
 
@@ -34,18 +32,13 @@ const CreateCohort = ({allCohorts, setAllCohorts, cohortClass, updateList, setKe
         }
     }, [cohortClass])
 
-    const handleClose = () => setShow(false);
-    const handleShow = () => setShow(true)
-
     const addProject = async () => {
         const newProject = {
             name: projectName,
             startDate: dueDate
         }
         try {
-            if (cohortName.length === 0) {
-                ModalAlert();
-            } else if (cohortClass) {
+            if (cohortClass) {
                 const {id:cohortId} = cohortClass;
                 const {data: project} = await axios.post('/api/projects/createProject', {cohortId, newProject});
                 setProjectList([...projectList, project]);
@@ -88,7 +81,7 @@ const CreateCohort = ({allCohorts, setAllCohorts, cohortClass, updateList, setKe
             throw error
         }
     }
-    
+
     const removeUsername = async (removedIdx) => {
         try {
             if (cohortClass) {
@@ -223,4 +216,4 @@ const CreateCohort = ({allCohorts, setAllCohorts, cohortClass, updateList, setKe
     )
 }
 
-export default CreateCohort;
+export default Cohort;

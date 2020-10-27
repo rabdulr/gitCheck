@@ -7,7 +7,7 @@ import axios from 'axios';
 
 import ClassData from './ClassData';
 import ClassStudentView from './ClassStudentsView';
-import CreateCohort from './CreateCohort';
+import Cohort from './Cohort';
 
 
 const ClassInfo = ({updateList, allCohorts, setAllCohorts}) => {
@@ -43,6 +43,7 @@ const ClassInfo = ({updateList, allCohorts, setAllCohorts}) => {
 
     return (
         <>
+            <h3>{cohortClass.name}</h3>
         {
             cohortClass.cohortAvg && cohortClass.cohortData ?
             <Tabs defaultActiveKey="classData" id="data-navigation" activeKey={key} onSelect={k => setKey(k)}>
@@ -53,7 +54,7 @@ const ClassInfo = ({updateList, allCohorts, setAllCohorts}) => {
                     <ClassStudentView avgData={cohortClass.cohortAvg} cohortData={cohortClass.cohortData} />
                 </Tab>
                 <Tab eventKey="classEdit" title="Edit Class">
-                    <CreateCohort allCohorts={allCohorts} setAllCohorts={setAllCohorts} cohortClass={cohortClass} setKey={setKey} updateList={updateList} setCohortClass={setCohortClass} />
+                    <Cohort allCohorts={allCohorts} setAllCohorts={setAllCohorts} cohortClass={cohortClass} setKey={setKey} updateList={updateList} setCohortClass={setCohortClass} />
                 </Tab>
             </Tabs> 
             : <Spinner animation='border' />

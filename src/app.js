@@ -15,7 +15,7 @@ import {
     useParams
   } from 'react-router-dom';
 
-import CreateCohort from './CreateCohort';
+import CreateCohort from './Cohort';
 import ClassInfo from './ClassInfo';
 
 
@@ -108,7 +108,6 @@ const App = () => {
         }
     };
 
-    console.log('all cohorts: ', allCohorts)
     return (
         <>
             <Container fluid>
@@ -120,18 +119,14 @@ const App = () => {
                                 <DropdownButton id="dropdown-basic-button" title="Select Cohort" variant="secondary">
                                     {
                                         allCohorts.length > 0 ?
-                                            allCohorts.map(newClass => <Dropdown.Item as={Link} to={`/cohort/${newClass.id}`}>{newClass.name}</Dropdown.Item>)
+                                            allCohorts.map(newClass => <Dropdown.Item as={Link} to={`/cohort/${newClass.id}`} key={newClass.name}>{newClass.name}</Dropdown.Item>)
                                             : <></>
                                     }
-                                    {/* <Dropdown.Item href="#/cohort">Cohort</Dropdown.Item> */}
                                 </DropdownButton>
                                 <Navbar.Collapse className="justify-content-end">
                                     <Button variant="primary" as={Link} to={'/new-cohort'} >Add New</Button>{' '}
                                     <Button variant="primary" onClick={logOut}>Log Out</Button>
                                 </Navbar.Collapse>
-                                {/* <Button variant="primary" onClick={getStudent}>Get User</Button> */}
-                                {/* <Button variant="primary" onClick={getStudents}>Get Students</Button> */}
-                                {/* <Button variant="primary" onClick={getLimit}>Get Limits</Button> */}
                             </> :
                             <>
                                 <Navbar.Collapse className="justify-content-end">
@@ -154,7 +149,7 @@ const App = () => {
                                         <Route path="/new-cohort">
                                             <CreateCohort allCohorts={allCohorts} setAllCohorts={setAllCohorts} updateList={updateList} />
                                         </Route>
-                                </> : <><h3>You are not logged</h3></>
+                                </> : <><h3>You are not logged in</h3></>
                         }
                     </Col>
                 </Row>
