@@ -162,7 +162,7 @@ gitHub.post('/updateList', isLoggedIn, async (req, res) => {
     }
 });
 
-gitHub.post('/getUsers', isLoggedIn, async (req, res) => {
+gitHub.post('/getUsers', async (req, res) => {
     const {accessToken} = req.user
     const {students, projects} = req.body
     // Function is reading seed data from .env

@@ -15,10 +15,13 @@ passport.deserializeUser(async function(id, done) {
   }
 });
 
+const dev = process.env.NODE_EV === 'production' ? 'https://red-gitcheck.herokuapp.com/auth/github/callback' : 'http://localhost:3000/auth/github/callback'
+
+
 passport.use(new GitHubStrategy({
-    clientID: process.env.CLIENT_ID,
-    clientSecret: process.env.CLIENT_SECRET,
-    callbackURL: 'https://red-gitcheck.herokuapp.com/auth/github/callback'
+    clientID: process.env.NODE_EV === 'production' ? process.env.CLIENT_ID : process.env.CLIENT_ID2,
+    clientSecret: process.env.NODE_EV === 'production' ? process.env.CLIENT_ID : process.env.CLIENT_SECRET2,
+    callbackURL: `${dev}`
   },
   async function(accessToken, refreshToken, profile, done) {
     try {
