@@ -26,7 +26,7 @@ server.get('/', (req, res, next) => res.sendFile(path.join(__dirname, 'index.htm
 server.use(passport.initialize());
 server.use(passport.session())
 
-server.get('/auth/github/login', passport.authenticate('github', { scope: ['repo', 'user']}));
+server.get('/auth/github/login', passport.authenticate('github', { scope: ['repo', 'read:user']}));
 server.get('/auth/github/callback', passport.authenticate('github', {failureRedirect: '/'}),
     function(req, res) {
         res.redirect(`/`)

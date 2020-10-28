@@ -15,22 +15,15 @@ const tableIcons = {
 }
 
 const Repos = ({project, idx, avgData}) => {
-    const [data, setData] = useState(basicCommitLineData(project));
-    const [classData, setClassData] = useState(findData(avgData, project.name));
-    const [combinedData, setCombinedData] = useState(combineData(data, classData));
+    const [data, setData] = useState([]);
+    const [classData, setClassData] = useState([]);
+    const [combinedData, setCombinedData] = useState([]);
     const {commit_counts} = project;
 
     useEffect(() => {
-        if (project && data.length === 0) {
             setData(basicCommitLineData(project));
-        }
-    }, [project]);
-
-    useEffect(() => {
-        if (project && avgData && !classData) {
             setClassData(findData(avgData, project.name))
-        }
-    }, [avgData]);
+    }, [project]);
 
     useEffect(() => {
         if (data && classData){
@@ -54,8 +47,8 @@ const Repos = ({project, idx, avgData}) => {
     }
 
     return (
-        <div key={idx}>
-            <h4>Project: {project.name}</h4>
+        <>
+            <h4 key={project.name}>Project: {project.name}</h4>
             {
                 data.length > 0 ?
                 <>
@@ -91,7 +84,7 @@ const Repos = ({project, idx, avgData}) => {
 
                     data={tableData(commit_counts)}
                 />
-        </div>
+        </>
     )
 }
 

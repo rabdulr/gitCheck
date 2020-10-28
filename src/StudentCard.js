@@ -4,7 +4,7 @@ const StudentCard = ({student}) => {
     const {repository, name} = student;
     return (
         <div>
-            {repository.name || repository.login}
+            {repository.login}
         </div>
     )
 };

@@ -15,6 +15,7 @@ import {
 import CreateCohort from './Cohort';
 import ClassInfo from './ClassInfo';
 import Main from './Main';
+import Loading from './Loading';
 import { Nav } from 'react-bootstrap';
 
 
@@ -23,6 +24,7 @@ const App = () => {
     const [limits, setLimits] = useState({});
     const [allCohorts, setAllCohorts] = useState([]);
     const [userLoginName, setUserLoginName] = useState('');
+    const [isLoading, setIsLoading] = useState(false)
     
     const getUser = async() => {
         const {data: {user}} = await axios.get('/api/users');
@@ -36,10 +38,12 @@ const App = () => {
     }
 
     useEffect(() => {
+        setIsLoading(true)
         if (!token) {
             getUser();
             getAllCohorts();
         }
+        setIsLoading(false)
     }, [])
 
     const gitHubLogin = () => {
@@ -73,7 +77,7 @@ const App = () => {
         <>
             <Container fluid>
                 <Navbar bg="light" expand="md">
-                    <Navbar.Brand as={Link} to={'/'}>gitCheck FSA</Navbar.Brand>
+                    <Navbar.Brand as={Link} to={'/'}>gitCheck</Navbar.Brand>
                     {
                         token ?
                             <>
@@ -91,7 +95,7 @@ const App = () => {
                             </> :
                             <>
                                 <Navbar.Collapse className="justify-content-end">
-                                    <Button variant="light" onClick={gitHubLogin}>GitHub Login</Button>
+                                    <Button variant="secondary" onClick={gitHubLogin}>GitHub Login</Button>
                                 </Navbar.Collapse>
                             </>
                     }
@@ -105,12 +109,15 @@ const App = () => {
                                             <Main username={userLoginName} />
                                         </Route>
                                         <Route path="/cohort/:id">
-                                            <ClassInfo updateList={updateList} allCohorts={allCohorts} setAllCohorts={setAllCohorts} />
+                                            <ClassInfo updateList={updateList} allCohorts={allCohorts} setAllCohorts={setAllCohorts} isLoading={isLoading} setIsLoading={setIsLoading} />
                                         </Route>
                                         <Route path="/new-cohort">
                                             <CreateCohort allCohorts={allCohorts} setAllCohorts={setAllCohorts} updateList={updateList} />
                                         </Route>
                                 </> : <Main />
+                        }
+                        {
+                            isLoading ? <Loading /> : null
                         }
                     </Col>
                 </Row>

@@ -4,7 +4,6 @@ import React, {useState, useEffect} from 'react';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import Card from 'react-bootstrap/Card';
-import InputGroup from 'react-bootstrap/InputGroup';
 import Form from 'react-bootstrap/Form';
 import Button from 'react-bootstrap/Button';
 import { useHistory } from 'react-router-dom';
@@ -33,7 +32,6 @@ const Cohort = ({allCohorts, setAllCohorts, cohortClass, updateList, setKey, set
                 project.startDate = (new Date(project.startDate)).toLocaleDateString();
                 return project
             })
-            // Need to redo this whole bit down here
             setStudentListArr(students)
             setCohortName(name);
             setProjectList(projects);
@@ -102,7 +100,6 @@ const Cohort = ({allCohorts, setAllCohorts, cohortClass, updateList, setKey, set
 
     const createCohort = async (ev) => {
         ev.preventDefault();
-        setLoading(true)
         try {
             if (!cohortName) {
                 setError('Cohort Name is required');
@@ -125,11 +122,6 @@ const Cohort = ({allCohorts, setAllCohorts, cohortClass, updateList, setKey, set
                 const {data: projects} = await axios.post('/api/projects/createProjects', {cohortId, projectList: projectList});
                 newCohort.students = students;
                 newCohort.projects = projects;
-                if (students.length > 0 && projects.length > 0) {
-                    const {returnedAvgData, cohort} = await updateList(students, projects);
-                    newCohort.cohortData = cohort;
-                    newCohort.cohortAvg = returnedAvgData;
-                }
                 setAllCohorts([...allCohorts, newCohort]);
                 setCohortName('')
                 setStudentListArr([]);
@@ -139,8 +131,6 @@ const Cohort = ({allCohorts, setAllCohorts, cohortClass, updateList, setKey, set
             }    
         } catch (error) {
             throw error
-        } finally {
-            setLoading(false)
         }
     };
 
@@ -224,7 +214,7 @@ const Cohort = ({allCohorts, setAllCohorts, cohortClass, updateList, setKey, set
                                             projectList.length > 0 ?
                                                 projectList.map((project, idx) => {
                                                     return (
-                                                    <Card key={project.name + idx} className='text-center' style={{width: '20rem'}}>
+                                                    <Card key={`${project.name}-${idx}${ cohortClass ? cohortClass.id : idx}`} className='text-center' style={{width: '20rem'}}>
                                                         <Card.Body>
                                                             <Card.Title>
                                                                 {project.name}
@@ -253,9 +243,7 @@ const Cohort = ({allCohorts, setAllCohorts, cohortClass, updateList, setKey, set
                                         {
                                             studentListArr.map((student, idx) => {
                                                 return(
-                                                    <>
-                                                        <Button variant='danger' size='sm' onClick={() => removeUsername(idx)} style={{marginRight: '5px'}}>{student.gitHubUser || student} X</Button>
-                                                    </>
+                                                        <Button variant='danger' size='sm' onClick={() => removeUsername(idx)} style={{marginRight: '5px'}} key={`${student.gitHubUser ? student.gitHubUser : student}-${idx}${cohortClass ? cohortClass.id : idx}`}>{student.gitHubUser || student} X</Button>
                                                 )
                                             })
                                         }
