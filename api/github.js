@@ -13,6 +13,8 @@ const {isLoggedIn} = require('./utils');
 
 // Functions
 
+const REDIRECT_URI = process.env.NODE_ENV === 'production' ? 'https://red-gitcheck.herokuapp.com/' : 'http://localhost:3000/'
+
 const headers = (token) => {
     const header = {
         headers: {
@@ -64,7 +66,7 @@ const returnUserData = (chunkList, projectList, token) => {
         return Promise.all(chunkList.map(set => {
             return Promise.all(set.map(async (studentData) => {
                 delayTime += 20
-                const {data: {student}} = await timedPromise(delayTime, axios.post(`http://localhost:3000/api/github/getUsers/${studentData.gitHubUser}`, {projectList}, {params: {token}}))
+                const {data: {student}} = await timedPromise(delayTime, axios.post(`${REDIRECT_URI}api/github/getUsers/${studentData.gitHubUser}`, {projectList}, {params: {token}}))
                 return student;
             }))
         }))
@@ -147,7 +149,7 @@ const getUserInfo = async (token, username, projects) => {
 
 };
 
-gitHub.post('/updateList', isLoggedIn, async (req, res) => {
+gitHub.post('/updateList', async (req, res) => {
     const {accessToken} = req.user;
     const {usersList, projectList} = req.body;
     try {
