@@ -20,7 +20,7 @@ const ClassInfo = ({updateList, allCohorts, setAllCohorts}) => {
         const {data: {returnedAvgData, cohort}} = await axios.post('/api/github/getUsers', {projects, students});
         return {returnedAvgData, cohort}
     };
-    
+
     useEffect(() => {
         setCohortClass({})
         if (allCohorts.length > 0) {

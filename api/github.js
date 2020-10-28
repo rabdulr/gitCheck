@@ -2,7 +2,6 @@
 const gitHub = require('express').Router();
 const {timedPromise, projectAvg, chunkStudentList, forkInsert} = require('../functions')
 const axios = require('axios');
-const sizeof = require('object-sizeof')
 const redis = require('redis');
 const bluebird = require('bluebird');
 

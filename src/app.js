@@ -9,7 +9,7 @@ import DropdownButton from 'react-bootstrap/DropdownButton';
 import Dropdown from 'react-bootstrap/Dropdown';
 import {
     Route,
-    Link
+    Link,
   } from 'react-router-dom';
 
 import CreateCohort from './Cohort';
@@ -78,7 +78,7 @@ const App = () => {
                 <Navbar bg="light" expand="md">
                     <Navbar.Brand as={Link} to={'/'}>gitCheck</Navbar.Brand>
                     {
-                        token ?
+                        token && allCohorts ?
                             <>
                                 <DropdownButton id="dropdown-basic-button" title={!allCohorts ? 'Loading...' : 'Select Cohort'} variant="secondary" disabled={!allCohorts}>
                                     {

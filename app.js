@@ -21,7 +21,7 @@ server.use(cookieSession({
     keys: ['key1', 'key2']
 }))
 
-server.get('/', (req, res, next) => res.sendFile(path.join(__dirname, 'index.html')));
+server.get('/', (req, res, next) => res.sendFile(path.resolve(__dirname, 'index.html')));
 
 server.use(passport.initialize());
 server.use(passport.session())

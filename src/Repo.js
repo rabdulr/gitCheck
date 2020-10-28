@@ -6,12 +6,15 @@ import FirstPage from '@material-ui/icons/FirstPage';
 import LastPage from '@material-ui/icons/LastPage';
 import ChevronLeft from '@material-ui/icons/ChevronLeft';
 import ChevronRight from '@material-ui/icons/ChevronRight';
+import ArrowDownward from '@material-ui/icons/ArrowDownward';
+
 
 const tableIcons = {
     FirstPage: forwardRef((props, ref) => <FirstPage {...props} ref={ref} />),
     LastPage: forwardRef((props, ref) => <LastPage {...props} ref={ref} />),
     NextPage: forwardRef((props, ref) => <ChevronRight {...props} ref={ref} />),
     PreviousPage: forwardRef((props, ref) => <ChevronLeft {...props} ref={ref} />),
+    SortArrow: forwardRef((props, ref) => <ArrowDownward {...props} ref={ref} />),
 }
 
 const Repos = ({project, idx, avgData}) => {
@@ -40,11 +43,14 @@ const Repos = ({project, idx, avgData}) => {
                 commit: commit.commit.message,
                 additions: commit.stats.additions,
                 deletions: commit.stats.deletions,
+                url: commit.html_url,
                 date: new Date(commit.commit.committer.date).toLocaleDateString()
             };
             return basicCommit
         })
     }
+
+    console.log('commit_counts: ', commit_counts)
 
     return (
         <>
@@ -70,18 +76,20 @@ const Repos = ({project, idx, avgData}) => {
                 <MaterialTable
                     options={{
                         search: false,
+                        filtering: false,
                     }}
                     icons={tableIcons}
                     columns={[
-                        { title: "Commit", field: "commit" },
+                        { title: "Commit", field: "commit", render: rowData => <a href={rowData.url}>{rowData.commit}</a> },
                         { title: "Additions", field: "additions" },
                         { title: "Deletions", field: "deletions" },
-                        { title: "Date", field: "date" }
+                        { title: "Date", field: "date" },
                     ]}
 
                     title="Commits"
 
                     data={tableData(commit_counts)}
+
                 />
         </>
     )

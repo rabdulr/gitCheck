@@ -21,6 +21,9 @@ const Main = ({username}) => {
                     <li>Exact names and start dates of forked repos</li>
                     <li>List of student GitHub usernames</li>
                 </ol>
+                <Card.Text>
+                    This application is still under development which may result in bugs and issues.
+                </Card.Text>
             </Card.Body>
         </Card>
     )
