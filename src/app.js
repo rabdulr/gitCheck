@@ -57,7 +57,6 @@ const App = () => {
     const updateList = async (usersList, projectList) => {
         try {
             const {data: {returnedAvgData, cohort}} = await axios.post('/api/github/updateList', {usersList, projectList}, {params: {token}});
-            console.log('avg data sets: ', returnedAvgData, cohort)
             return {returnedAvgData, cohort}
         } catch (error) {
             throw error

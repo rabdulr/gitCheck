@@ -11,7 +11,7 @@ import Cohort from './Cohort';
 import Loading from './Loading'
 
 
-const ClassInfo = ({updateList, allCohorts, setAllCohorts, isLoading, setIsLoading}) => {
+const ClassInfo = ({updateList, allCohorts, setAllCohorts}) => {
     const [key, setKey] = useState('classData');
     const [cohortClass, setCohortClass] = useState({});
     const {id} = useParams();

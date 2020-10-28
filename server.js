@@ -4,5 +4,5 @@ const client = require('./db/client')
 
 server.listen(PORT, () => {
     client.connect();
-    console.log(`Listening on poart ${PORT}`)
+    console.log(`Listening on port ${PORT}`)
 })

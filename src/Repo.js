@@ -67,7 +67,6 @@ const Repos = ({project, idx, avgData}) => {
                 </>
                 : <h3>Data Unavailble to Graph</h3>
             }
-                {/* <li>Project URL: {project.url}</li> */}
                 <MaterialTable
                     options={{
                         search: false,

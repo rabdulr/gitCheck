@@ -214,7 +214,7 @@ const Cohort = ({allCohorts, setAllCohorts, cohortClass, updateList, setKey, set
                                             projectList.length > 0 ?
                                                 projectList.map((project, idx) => {
                                                     return (
-                                                    <Card key={`${project.name}-${idx}${ cohortClass ? cohortClass.id : idx}`} className='text-center' style={{width: '20rem'}}>
+                                                    <Card key={project.name} className='text-center' style={{width: '20rem'}}>
                                                         <Card.Body>
                                                             <Card.Title>
                                                                 {project.name}
@@ -243,7 +243,7 @@ const Cohort = ({allCohorts, setAllCohorts, cohortClass, updateList, setKey, set
                                         {
                                             studentListArr.map((student, idx) => {
                                                 return(
-                                                        <Button variant='danger' size='sm' onClick={() => removeUsername(idx)} style={{marginRight: '5px'}} key={`${student.gitHubUser ? student.gitHubUser : student}-${idx}${cohortClass ? cohortClass.id : idx}`}>{student.gitHubUser || student} X</Button>
+                                                        <Button variant='danger' size='sm' onClick={() => removeUsername(idx)} style={{marginRight: '5px'}} key={student.gitHubUser ? student.gitHubUser : student}>{student.gitHubUser || student} X</Button>
                                                 )
                                             })
                                         }

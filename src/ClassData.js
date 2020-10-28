@@ -1,7 +1,6 @@
-import React, {useEffect, useState} from 'react';
+import React from 'react';
 import Row from 'react-bootstrap/Row';
 import { LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer} from 'recharts';
-import Spinner from 'react-bootstrap/Spinner';
 import Col from 'react-bootstrap/Col';
 
 const ClassData = ({avgData}) => {
@@ -11,7 +10,6 @@ const ClassData = ({avgData}) => {
             <Col>
                 {
                     avgData.map(data => {
-                        console.log('data: ', data)
                         return (
                             <div key={data.name}>
                                 <h4>{data.project.name}</h4>

@@ -28,7 +28,6 @@ const ClassStudentView = ({avgData, cohortData}) => {
         } else {
             const filteredList = studentList.filter(filterStudent => filterStudent.repository.login.toLowerCase().includes(studentSearch.toLowerCase()))
             setStudentList(filteredList);
-            setStudentInfo(filteredList[0])
         }
     }, [studentSearch])
 
