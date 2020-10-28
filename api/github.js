@@ -149,7 +149,7 @@ const getUserInfo = async (token, username, projects) => {
 
 };
 
-gitHub.post('/updateList', async (req, res) => {
+gitHub.post('/updateList', isLoggedIn, async (req, res) => {
     const {accessToken} = req.user;
     const {usersList, projectList} = req.body;
     try {
@@ -164,7 +164,7 @@ gitHub.post('/updateList', async (req, res) => {
     }
 });
 
-gitHub.post('/getUsers', async (req, res) => {
+gitHub.post('/getUsers', isLoggedIn, async (req, res) => {
     const {accessToken} = req.user
     const {students, projects} = req.body
     // Function is reading seed data from .env

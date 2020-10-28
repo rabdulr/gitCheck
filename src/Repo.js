@@ -80,7 +80,7 @@ const Repos = ({project, idx, avgData}) => {
                     }}
                     icons={tableIcons}
                     columns={[
-                        { title: "Commit", field: "commit", render: rowData => <a href={rowData.url}>{rowData.commit}</a> },
+                        { title: "Commit", field: "commit", render: rowData => <a href={rowData.url} target='_blank'>{rowData.commit}</a> },
                         { title: "Additions", field: "additions" },
                         { title: "Deletions", field: "deletions" },
                         { title: "Date", field: "date" },
