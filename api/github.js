@@ -6,8 +6,9 @@ const redis = require('redis');
 const bluebird = require('bluebird');
 
 bluebird.promisifyAll(redis);
-
-const redisCLient = redis.createClient();
+const redisEnv = {host: '127.0.0.1', port: '6379'}
+const redisConnection = process.env.REDIS_URL || redisEnv
+const redisCLient = redis.createClient(redisConnection);
 const {isLoggedIn} = require('./utils');
 
 // Functions
