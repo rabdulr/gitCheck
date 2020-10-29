@@ -30,7 +30,6 @@ const startGetUser = async (token, student, projects) => {
     info.name = student;
     info.repository = await getUserInfo(token, student, projects);
     console.log(`ENDING PROCESS: ${student}`)
-    // redisCLient.setex(info.name, 18000, JSON.stringify(info));
     return info
 };
 
