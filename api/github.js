@@ -108,7 +108,6 @@ const getUserInfo = async (token, username, projects) => {
                 const commitList = [];
                 console.log(`STARTING REPO ${repo.name} for ${username}`)
                 let response = await axios(`${repo.url}/commits/master`, headers(token)).catch(err => err.response.status);
-                
                 if (response === 409) {
                     repo.commit_counts = commitList;
                     redisCLient.setex(`${username}.${repo.name}`, 18000, JSON.stringify(commitList));
@@ -120,8 +119,6 @@ const getUserInfo = async (token, username, projects) => {
                 const {data: commitMaster} = response;
                 delete commitMaster.author;
                 delete commitMaster.owner;
-    
-                commitList.push(commitMaster);
     
                 if (commitMaster.parents.length > 0) {
                     // Recursive function

@@ -243,7 +243,7 @@ const Cohort = ({allCohorts, setAllCohorts, cohortClass, updateList, setKey, set
                                         {
                                             studentListArr.map((student, idx) => {
                                                 return(
-                                                        <Button variant='danger' size='sm' onClick={() => removeUsername(idx)} style={{marginRight: '5px'}} key={student.gitHubUser ? student.gitHubUser : student}>{student.gitHubUser || student} X</Button>
+                                                        <Button variant='danger' size='sm' onClick={() => removeUsername(idx)} style={{margin: '5px'}} key={student.gitHubUser ? student.gitHubUser : student}>{student.gitHubUser || student} X</Button>
                                                 )
                                             })
                                         }
