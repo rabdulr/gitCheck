@@ -35,12 +35,9 @@ git clone https://github.com/rabdulr/gitCheck.git gitCheck
 npm install
 ```
 3. Create a database utilizing PostgreSQL and create tables
-'''sh
+```sh
 createdb git-check
 npm run seed
-'''
-'''sh
-npm run seed
-'''
+```
 4. Change callback routes within the api/github.js and api/passport-setup.js
 5. Configure your .env file with GitHub OAuth information
