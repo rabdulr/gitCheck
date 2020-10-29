@@ -30,7 +30,21 @@ const Main = ({username}) => {
                     </ol>
                     <Card.Text>
                         I would recommend testing with your GitHub user and a project to verify data is obtained before adding more. Depending on the amount of data being retrieved and processed, the page may take some time to load.
-                    </Card.Text> </> : 
+                    </Card.Text>
+                    <Card.Title>
+                        Creating Your First Class
+                    </Card.Title>
+                    <ol>
+                        <li>Click 'Add New Cohort'</li>
+                        <li>Enter a name such as 'First Class'</li>
+                        <li>Enter a project name of 'gitCheck' with a start date of today</li>
+                        <li>Add a username of 'rabdulr' for the student</li>
+                        <li>Click 'Create Cohort'</li>
+                    </ol>
+                    <Card.Text>
+                        You should then be redirected to a general page where you can see all the commits that have been done for this project!
+                    </Card.Text>
+                    </> : 
                     <>
                     <Card.Title>
                         Features:

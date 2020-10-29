@@ -203,7 +203,6 @@ const Cohort = ({allCohorts, setAllCohorts, cohortClass, updateList, setKey, set
                                     <Form.Group as={Row} controlId='formProjectDate' >
                                         <Form.Label column style={{display: 'flex', alignItems: 'center'}}>Project Start Date</Form.Label>
                                         <Col sm="10">
-                                            {/* <Form.Control type='text' placeholder='01/01/20' value={startDate} onChange={ev => setStartDate(ev.target.value)} /> */}
                                             <DatePicker selected={startDate} onChange={date => setStartDate(date)} />
                                         </Col>
                                     </Form.Group>
@@ -241,6 +240,9 @@ const Cohort = ({allCohorts, setAllCohorts, cohortClass, updateList, setKey, set
                                             }} />
                                         </Col>
                                     </Form.Group>
+                                    <Row style={{display: 'flex', justifyContent: 'flex-end'}}>
+                                        <Button variant="primary" onClick={addUsername}>Add Student</Button>
+                                    </Row>
                                     <Row>
                                         {
                                             studentListArr.map((student, idx) => {

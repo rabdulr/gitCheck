@@ -13,6 +13,7 @@ out of the desire to see how students are tackling projects by grabbing commit i
 * [React-Router](http://reactrouter.com)
 * [React-Bootstrap](http://react-bootstrap.netlify.app)
 * [Material-Table](http://material-table.com)
+* [Recharts](https://recharts.org/en-US/)
 * [Express](http://expressjs.com)
 * [Node](http://nodejs.org/en/)
 * [Passport](http://passportjs.org)
@@ -22,7 +23,7 @@ out of the desire to see how students are tackling projects by grabbing commit i
 
 ## Cloning gitCheck
 
-You will need to create an OAuth application configured with [GitHuh](https://docs.github.com/en/free-pro-team@latest/github/authenticating-to-github/authorizing-oauth-apps). This build utilizes two instances for development and production. 
+You will need to create an OAuth application configured with [GitHub](https://docs.github.com/en/free-pro-team@latest/github/authenticating-to-github/authorizing-oauth-apps). This build utilizes two instances for development and production. 
 
 ## Installation
 
