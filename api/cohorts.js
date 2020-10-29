@@ -1,6 +1,6 @@
 const cohorts = require('express').Router();
 const {isLoggedIn} = require('./utils');
-const {createCohort, getCohortByCreatorId, getStudentsByCohortId, getProjectsByCohortId, destroyCohort} = require('../db')
+const {createCohort, getCohortByCreatorId, getStudentsByCohortId, getProjectsByCohortId, updateCohortName, destroyCohort} = require('../db')
 
 cohorts.post('/createCohort', isLoggedIn, async (req, res, next) => {
     try {
@@ -38,4 +38,14 @@ cohorts.delete('/delete/:id', isLoggedIn, async (req, res, next) => {
     }
 })
 
+cohorts.patch('/update/:id', isLoggedIn, async (req, res, next) => {
+    try {
+        const {id} = req.params;
+        const {cohortName:name} = req.body;
+        const cohort = await updateCohortName({id, name});
+        res.send(cohort)
+    } catch (error) {
+        throw error
+    }
+})
 module.exports = cohorts

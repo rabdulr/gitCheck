@@ -8,9 +8,9 @@ import Form from 'react-bootstrap/Form';
 import Button from 'react-bootstrap/Button';
 import { useHistory } from 'react-router-dom';
 import axios from 'axios';
-import Spinner from 'react-bootstrap/Spinner';
 import DatePicker from "react-datepicker";
 import Modal from 'react-bootstrap/Modal';
+import Loading from './Loading'
 
 const Cohort = ({allCohorts, setAllCohorts, cohortClass, updateList, setKey, setCohortClass}) => {
 
@@ -106,6 +106,8 @@ const Cohort = ({allCohorts, setAllCohorts, cohortClass, updateList, setKey, set
             } else if (cohortClass) {
                 // Run an update on the items
                 const {returnedAvgData, cohort} = await updateList(studentListArr, projectList);
+                const {data: {name}} = await axios.patch(`/api/cohorts/update/${cohortClass.id}`, {cohortName});
+                cohortClass.name = name
                 cohortClass.students = studentListArr;
                 cohortClass.projects = projectList;
                 cohortClass.cohortData = cohort;
@@ -149,7 +151,7 @@ const Cohort = ({allCohorts, setAllCohorts, cohortClass, updateList, setKey, set
     return (
             <Row>
                 {
-                    loading ? <Spinner animation='border' /> :
+                    loading ? <Loading /> :
                     <Card style={{width: '100%'}}>
                         <Card.Body>
                             <Card.Title>
