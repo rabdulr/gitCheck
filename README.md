@@ -37,7 +37,6 @@ npm install
 3. Create a database utilizing PostgreSQL and create tables
 '''sh
 createdb git-check
-----
 npm run seed
 '''
 4. Change callback routes within the api/github.js and api/passport-setup.js
