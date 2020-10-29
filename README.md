@@ -1,6 +1,6 @@
 # gitCheck
 
-[gitCheck](http://https://red-gitcheck.herokuapp.com/) is an application that enables instructors to gauge engagement through student commits of forked projects.
+[gitCheck](https://red-gitcheck.herokuapp.com/) is an application that enables instructors to gauge engagement through student commits of forked projects.
 
 ## About the Project
 
