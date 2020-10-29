@@ -39,5 +39,6 @@ npm install
 createdb git-check
 npm run seed
 ```
-4. Change callback routes within the api/github.js and api/passport-setup.js
-5. Configure your .env file with GitHub OAuth information
+4. Ensure Redis is configured
+5. Change callback routes within the api/github.js and api/passport-setup.js
+6. Configure your .env file with GitHub OAuth information
